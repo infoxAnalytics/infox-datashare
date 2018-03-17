@@ -9,6 +9,7 @@ from raw_data_handler import get_users_table
 import json
 import re
 import uuid
+import MySQLdb as mdb
 
 
 class Protector(Db):
@@ -88,7 +89,7 @@ class Protector(Db):
     def register(self, args, ip):
         event_type = "REGISTER"
         if args["PASSWORD"] != args["RE-PASSWORD"]:
-            return response_create(json.dumps({"STATUS": "error", "ERROR": "Your passwords not match."}))
+            return response_create(json.dumps({"STATUS": "error", "ERROR": "Your passwords does not match."}))
         try:
             uid = str(uuid.uuid4()).split("-")[-1]
             self.write_mysql("INSERT INTO users(ID,F_NAME,L_NAME,EMAIL,MAJORITY,COUNTRY,PASSWORD) VALUES ('{0}','{1}','{2}','{3}','{4}','{5}','{6}')".format(
@@ -98,6 +99,9 @@ class Protector(Db):
             write_log_to_mysql(event_type, ip, "INFO", log, self.system_username)
             self.mysql_commit()
             return response_create(json.dumps({"STATUS": "OK", "target": "/"}))
+        except mdb.IntegrityError:
+            self.mysql_rollback()
+            return response_create(json.dumps({"STATUS": "error", "ERROR": "Your account already created.If you forget your password, contact us."}))
         except Exception as e:
             self.mysql_rollback()
             return response_create(json.dumps({"STATUS": "error", "ERROR": "Query could not be completed.Error: {0}".format(e)}))
