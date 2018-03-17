@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <!-- Meta, title, CSS, favicons, etc. -->
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel='shortcut icon' type='image/x-icon' href='http://cdn2.n11.com.tr/static/favicon.ico' />
+
+  <title>{{ page_title }}</title>
+
+  <!-- Bootstrap core CSS -->
+
+  <link href="static/login.css" rel="stylesheet">
+
+</head>
+
+<body>
+  
+<div class="login">
+  <div class="heading">
+    <img src="/static/images/hlogo.png" alt="Protected Area" width="300px" style="margin-bottom:25px;margin-left:5px;">
+    <form >
+
+      <div class="input-group input-group-lg">
+        <span class="input-group-addon"><i class="fa fa-user"></i></span>
+        <input name="username" type="text" class="form-control" placeholder="Username ">
+          </div>
+
+        <div class="input-group input-group-lg">
+          <span class="input-group-addon"><i class="fa fa-lock"></i></span>
+          <input name="password" type="password" class="form-control" placeholder="Password">
+        </div>
+
+        <button type="button" class="float" onclick="login()"><label style="color:white;">Login</label></button>
+       </form>
+       <a href="/register" style="float:left;color:white"> Register Now! </a>
+       <p style="float:right;color:white"> Powered by IT Operation </p>
+    </div>
+ </div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+<script>
+
+
+function login() {
+      var username = document.querySelector('[name="username"]').value;
+      var password = document.querySelector('[name="password"]').value;
+
+      if ( username == "" || password == "" ) {
+        alert("Kullanıcı adı ve şifre boş bırakılamaz !!!");
+      } else {
+        var data = { "PROCESS":"login", "USERNAME":username, "PASSWORD":password }
+        $.ajax({
+          type: "POST",
+          url: "/verifier",
+          data: data,
+          dataType: 'json',
+          success: function(data) {
+            if ( data.STATUS == "OK" ) {
+              $(location).attr('href',data.target);
+            } else {
+              alert(data.ERROR);
+            }
+          }
+        });
+      }
+    }
+
+
+</script>
+</body>
+</html>
