@@ -5,7 +5,6 @@ from functools import wraps
 import os
 import sys
 import json
-import re
 
 from flask import Flask, render_template, session, redirect, url_for, request
 from flask_pymongo import PyMongo
