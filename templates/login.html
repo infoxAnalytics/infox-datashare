@@ -21,15 +21,15 @@
   
 <div class="login">
   <div class="heading">
-    <img src="/static/images/hlogo.png" alt="Protected Area" width="300px" style="margin-bottom:25px;margin-left:5px;">
+    <img src="/static/images/hlogo.png" alt="Protected Area" width="300px">
     <form >
 
-      <div class="input-group input-group-lg">
+      <div class="input-group input-group-lg" style="margin-top: 5px;">
         <span class="input-group-addon"><i class="fa fa-user"></i></span>
-        <input name="username" type="text" class="form-control" placeholder="Username ">
+        <input name="email" type="email" class="form-control" placeholder="E-Mail">
           </div>
 
-        <div class="input-group input-group-lg">
+        <div class="input-group input-group-lg" style="margin-top: 5px;">
           <span class="input-group-addon"><i class="fa fa-lock"></i></span>
           <input name="password" type="password" class="form-control" placeholder="Password">
         </div>
@@ -46,13 +46,13 @@
 
 
 function login() {
-      var username = document.querySelector('[name="username"]').value;
+      var email = document.querySelector('[name="email"]').value;
       var password = document.querySelector('[name="password"]').value;
 
-      if ( username == "" || password == "" ) {
+      if ( email == "" || password == "" ) {
         alert("Kullanıcı adı ve şifre boş bırakılamaz !!!");
       } else {
-        var data = { "PROCESS":"login", "USERNAME":username, "PASSWORD":password }
+        var data = { "PROCESS":"Login", "EMAIL":email, "PASSWORD":password }
         $.ajax({
           type: "POST",
           url: "/verifier",

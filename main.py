@@ -2,11 +2,15 @@
 # -*- coding: utf-8 -*-
 
 from functools import wraps
-import os
 
 
 from flask import Flask, render_template, session, redirect, url_for, request
 from flask_pymongo import PyMongo
+from modules.main_handler import Processor
+from modules.security_handler import is_disabled_account, arguman_controller
+from modules.login_handler import Protector
+
+import MySQLdb as mdb
 
 app = Flask(__name__)
 app.secret_key = "19d40f906d1f67cf66ccce9d2ea575604ad5f6a4497c5b3863c15eb7db5be779"
@@ -14,37 +18,66 @@ app.config['MONGO_DBNAME'] = 'datashare'
 app.config['MONGO_URI'] = 'mongodb://localhost:27017/datashare'
 mongo = PyMongo(app)
 
+main_handler = Processor()
+login_handler = Protector()
+
 
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if session.get("logged-in") is None or not session:
             return redirect(url_for('login', next=request.url))
+        elif is_disabled_account(session.get("UID")):
+            return login_handler.kickout()
         return f(*args, **kwargs)
     return decorated_function
 
 
-@app.route('/')
+@app.route("/")
 def login():
     return render_template('login.html', page_title="Infox Data Share")
 
 
-@app.route('/logout')
+@app.route("/logout")
 @login_required
 def logout():
     session.clear()
     return redirect(url_for('login'))
 
 
-@app.route('/main')
+@app.route("/main")
 @login_required
 def index():
     return render_template('index.html', page_title="Infox Data Share")
 
 
-@app.route('/register')
+@app.route("/register")
 def register():
     return render_template('register.html', page_title="Infox Data Share")
+
+
+@app.route("/verifier", methods=["POST"])
+def verifier():
+    process = mdb.escape_string(request.form["PROCESS"])
+    ip = request.headers.get("X-Forwarded-For")
+    if process == "Register":
+        args = {
+            "FIRSTNAME": mdb.escape_string(request.form["FIRSTNAME"]),
+            "LASTNAME": mdb.escape_string(request.form["LASTNAME"]),
+            "EMAIL": mdb.escape_string(request.form["EMAIL"]),
+            "PASSWORD": mdb.escape_string(request.form["PASSWORD"]),
+            "RE-PASSWORD": mdb.escape_string(request.form["RE-PASSWORD"]),
+            "MAJORITY": mdb.escape_string(request.form["MAJORITY"]),
+            "COUNTRY": mdb.escape_string(request.form["COUNTRY"])
+        }
+        control = arguman_controller(args)
+        if not control[0]:
+            return control[1]
+        return login_handler.register(args=args, ip=ip)
+    elif process == "Login":
+        email = mdb.escape_string(request.form["EMAIL"])
+        password = mdb.escape_string(request.form["PASSWORD"])
+        return login_handler.sign_in(email=email, password=password, ip=ip)
 
 
 if __name__ == '__main__':

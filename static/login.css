@@ -45,7 +45,7 @@ body, input, button {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 .login form .input-group:last-of-type {
-  border-top: none;
+  #border-top: none;
 }
 .login form .input-group span {
   background: transparent;
