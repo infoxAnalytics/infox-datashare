@@ -68,13 +68,13 @@ def verifier():
     ip = request.headers.get("X-Forwarded-For")
     if process == "Register":
         args = {
-            "FIRSTNAME": mdb.escape_string(request.form["FIRSTNAME"]),
-            "LASTNAME": mdb.escape_string(request.form["LASTNAME"]),
-            "EMAIL": mdb.escape_string(request.form["EMAIL"]),
+            "FIRSTNAME": mdb.escape_string(request.form["FIRSTNAME"]).title(),
+            "LASTNAME": mdb.escape_string(request.form["LASTNAME"]).upper(),
+            "EMAIL": mdb.escape_string(request.form["EMAIL"]).lower(),
             "PASSWORD": mdb.escape_string(request.form["PASSWORD"]),
             "RE-PASSWORD": mdb.escape_string(request.form["RE-PASSWORD"]),
-            "MAJORITY": mdb.escape_string(request.form["MAJORITY"]),
-            "COUNTRY": mdb.escape_string(request.form["COUNTRY"])
+            "MAJORITY": mdb.escape_string(request.form["MAJORITY"]).title(),
+            "COUNTRY": mdb.escape_string(request.form["COUNTRY"]).upper()
         }
         control = arguman_controller(args)
         if not control[0]:
