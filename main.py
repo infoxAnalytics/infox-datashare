@@ -56,6 +56,12 @@ def register():
     return render_template('register.html', page_title="Infox Data Share")
 
 
+@app.route("/survey")
+@login_required
+def survey():
+    return render_template('survey.html', page_title="Infox Survey")
+
+
 @app.route("/verifier", methods=["POST"])
 def verifier():
     process = mdb.escape_string(request.form["PROCESS"])
