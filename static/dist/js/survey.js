@@ -22,7 +22,7 @@ var json = {
                     name: "gender",
                     title: "What is your gender ?",
                     isRequired: true,
-                    choices: ["many|Male", "many|Female"],
+                    choices: ["Male", "Female"],
                     hasOther: true,
                     otherText: "Other (please specify its name)",
                     otherErrorText: "Please enter your gender."
@@ -93,17 +93,10 @@ var json = {
                     title: "Example matrix selection for multiple rows.",
                     //visibleIf: "{skinNumber} = 'many' and {skinShips} = 'all'",
                     columns: [
-                        "First Column", "Second Column", "Third Column"
+                        "First Column"
                     ],
                     rows: [
-                        "Example of row 1",
-                        "Example of row 2",
-                        "Example of row 3",
-                        "Example of row 4",
-                        "Example of row 5",
-                        "Example of row 6",
-                        "Example of row 7",
-                        "Example of row 8"
+                        "Example of row 1"
                     ]
                 }
             ]
@@ -113,12 +106,33 @@ var json = {
 
 window.survey = new Survey.Model(json);
 
-survey
-    .onComplete
-    .add(function (result) {
-        document
-            .querySelector('#surveyResult')
-            .innerHTML = "result: " + JSON.stringify(result.data);
-    });
+$("#surveyElement").Survey({
+    model: survey,
+    onComplete:sendDataToServer
+});
 
-$("#surveyElement").Survey({model: survey});
+function sendDataToServer(survey) {
+  var data = {"PROCESS": "SaveSurvey", "DATA": JSON.stringify(survey.data)}
+  // Ajax requester body
+    $.ajax({
+        type: 'POST',
+        url: '/main-components',
+        data: data,
+        dataType: 'json',
+        success: function(data) {
+            if ( data.STATUS == "OK" ) {
+                    new PNotify({
+                    title: 'Oops !!! Something went wrong.',
+                    text: data.OK,
+                    type: 'error'
+            });
+            } else {
+            new PNotify({
+                    title: 'Oops !!! Something went wrong.',
+                    text: data.ERROR,
+                    type: 'error'
+            });
+            }
+        }
+    });
+}

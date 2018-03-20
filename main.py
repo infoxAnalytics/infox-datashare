@@ -86,5 +86,14 @@ def verifier():
         return login_handler.sign_in(email=email, password=password, ip=ip)
 
 
+@app.route("/main-components", methods=["POST"])
+def main_components():
+    process = mdb.escape_string(request.form["PROCESS"])
+    ip = request.headers.get("X-Forwarded-For")
+    person = session.get("UID")
+    if process == "SaveSurvey":
+        return main_handler.save_survey_results(request.form["DATA"], person, ip)
+
+
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
