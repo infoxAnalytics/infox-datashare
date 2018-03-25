@@ -3,7 +3,6 @@
 
 from functools import wraps
 
-
 from flask import Flask, render_template, session, redirect, url_for, request
 from flask_pymongo import PyMongo
 from modules.main_handler import Processor
@@ -30,6 +29,7 @@ def login_required(f):
         elif is_disabled_account(session.get("UID")):
             return login_handler.kickout()
         return f(*args, **kwargs)
+
     return decorated_function
 
 
@@ -60,6 +60,11 @@ def register():
 @login_required
 def survey():
     return render_template('survey.html', page_title="Infox Survey")
+
+@app.route("/analytics")
+@login_required
+def analytics():
+    return render_template('analytics.html', page_title="Infox Analytics")
 
 
 @app.route("/verifier", methods=["POST"])

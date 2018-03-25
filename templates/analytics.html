@@ -1,0 +1,135 @@
+<!doctype html>
+
+
+<head>
+
+    <script src="https://cdn.anychart.com/releases/8.1.0/js/anychart-base.min.js" type="text/javascript"></script>
+    <title>{{ page_title }}</title>
+
+    <style>
+
+
+        .right { width: 300px; height: 600px; float:left}
+        .medium { width: 660px; height: 600px; float:left}
+        .left { width: 660px; height: 600px; float:left}
+
+
+
+
+
+
+    </style>
+
+    <script>
+      anychart.onDocumentLoad(function () {
+        // create an instance of a pie chart
+        var chart = anychart.pie();
+        // set the data
+        chart.data([
+          ["Turkey", 4],
+          ["Spain", 2],
+          ["Poland", 2],
+          ["USA", 2],
+        ]);
+        // set chart title
+        chart.title("Top 5 country ");
+        // set the container element
+        chart.container("container");
+        // initiate chart display
+        chart.draw();
+      });
+
+
+
+
+
+
+
+
+    </script>
+
+
+</head>
+
+
+<head>
+
+    <script src="https://cdn.anychart.com/releases/8.1.0/js/anychart-base.min.js" type="text/javascript"></script>
+    <title>{{ page_title }}</title>
+    <script>
+      anychart.onDocumentLoad(function() {
+  // create a chart and set the data
+  var chart = anychart.column([
+    ["Student", 2],
+    ["Asistant", 7],
+    ["Docent", 6],
+    ["Prof", 10]
+  ]);
+  // set chart title
+  chart.title("Majority");
+  // set chart container and draw
+  chart.container("container1").draw();
+});
+
+
+
+
+
+
+
+
+
+    </script>
+
+
+</head>
+
+
+<head>
+
+    <script src="https://cdn.anychart.com/releases/8.1.0/js/anychart-base.min.js" type="text/javascript"></script>
+    <title>{{ page_title }}</title>
+    <script>
+      anychart.onDocumentLoad(function() {
+     var data = [
+  ["flu", 10],
+  ["pox", 12],
+  ["hepatit", 18],
+  ["chincough", 11],
+  ["vomit", 9]
+];
+
+// create a chart
+chart = anychart.line();
+
+// create a line series and set the data
+var series = chart.line(data);
+
+// set the container id
+chart.container("container2");
+
+// initiate drawing the chart
+chart.title("Top İllnesses");
+chart.draw();
+});
+
+
+
+
+
+
+
+    </script>
+
+
+</head>
+
+
+<body>
+<div class="right" id="container" style="width: 400px; height: 400px;"></div>
+<div class="medium" id="container1" style="width: 400px; height: 400px;"></div>
+<div class="left" id="container2" style="width: 400px; height: 400px;"></div>
+</body>
+
+
+</html>
