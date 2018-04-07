@@ -92,8 +92,8 @@ class Protector(Db):
             return response_create(json.dumps({"STATUS": "error", "ERROR": "Your passwords does not match."}))
         try:
             uid = str(uuid.uuid4()).split("-")[-1]
-            self.write_mysql("INSERT INTO users(ID,F_NAME,L_NAME,EMAIL,MAJORITY,COUNTRY,PASSWORD) VALUES ('{0}','{1}','{2}','{3}','{4}','{5}','{6}')".format(
-                uid, args["FIRSTNAME"], args["LASTNAME"], args["EMAIL"], args["MAJORITY"], args["COUNTRY"], calculate_hash(args["PASSWORD"], "sha256")
+            self.write_mysql("INSERT INTO users(ID,F_NAME,L_NAME,EMAIL,MAJORITY,COUNTRY,PASSWORD,CITY,HOSPITAL) VALUES ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}')".format(
+                uid, args["FIRSTNAME"], args["LASTNAME"], args["EMAIL"], args["MAJORITY"], args["COUNTRY"], calculate_hash(args["PASSWORD"], "sha256"), args["CITY"], args["HOSPITAL"]
             ))
             log = "New user created.Name: {0}, Surname: {1}, Majority: {2}, Country: {3}, UserID: {4}.".format(args["FIRSTNAME"], args["LASTNAME"], args["MAJORITY"], args["COUNTRY"], uid)
             write_log_to_mysql(event_type, ip, "INFO", log, self.system_username)

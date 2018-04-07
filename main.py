@@ -79,7 +79,9 @@ def verifier():
             "PASSWORD": mdb.escape_string(request.form["PASSWORD"]),
             "RE-PASSWORD": mdb.escape_string(request.form["RE-PASSWORD"]),
             "MAJORITY": mdb.escape_string(request.form["MAJORITY"]).title(),
-            "COUNTRY": mdb.escape_string(request.form["COUNTRY"]).upper()
+            "COUNTRY": mdb.escape_string(request.form["COUNTRY"]).upper(),
+            "HOSPITAL": mdb.escape_string(request.form["HOSPITAL"]).title(),
+            "CITY": mdb.escape_string(request.form["CITY"]).capitalize()
         }
         control = arguman_controller(args)
         if not control[0]:

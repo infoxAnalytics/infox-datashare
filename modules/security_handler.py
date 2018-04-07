@@ -21,6 +21,7 @@ def is_disabled_account(uid):
 def arguman_controller(args, access=False):
     mail = re.compile("^[a-zA-Z0-9.\-_]+@[a-zA-Z0-9]{,8}\.([a-zA-Z0-9]{,8}\.[a-zA-Z0-9]{,8}|[a-zA-Z0-9]{,8})$")
     names = re.compile(r"^[a-zA-Z ]{,20}$", re.UNICODE)
+    hospital = re.compile(r"^[a-zA-Z ]{,50}$", re.UNICODE)
     password = re.compile("^(?=.*?\d)(?=.*?[A-Z])(?=.*?[@.*\-_!])(?=.*?[a-z])[A-Za-z\d@.*\-_!]{8,}$")
     country_codes = re.compile("^{0}$".format("|".join([i[0] for i in get_country_table(column="CODE")])))
     patern = {
@@ -30,7 +31,9 @@ def arguman_controller(args, access=False):
         "PASSWORD": [password, "Your password is week."],
         "RE-PASSWORD": [password, "Your password is week."],
         "MAJORITY": [names, "Majority syntax error."],
-        "COUNTRY": [country_codes, "Invalid country code."]
+        "COUNTRY": [country_codes, "Invalid country code."],
+        "CITY": [names, "Invalid city name."],
+        "HOSPITAL": [hospital, "Invalid hospital name."]
     }
     try:
         for k, v in args.iteritems():

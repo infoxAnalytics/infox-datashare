@@ -15,6 +15,7 @@
 
   <link href="/static/login.css" rel="stylesheet">
   <link href="/static/custom.css" rel="stylesheet">
+  <link href="/static/pnotify.custom.min.css" rel="stylesheet">
 
 </head>
 
@@ -50,7 +51,7 @@
         </div>
 
         <div class="input-group input-group-lg" style="margin-top: 5px;">
-          <span class="input-group-addon"><i class="fa fa-briefcase"></i></span>
+          <span class="input-group-addon"><i class="fa fa-user-md"></i></span>
           <input name="majority" type="text" class="form-control" placeholder="Majority">
         </div>
 
@@ -59,7 +60,17 @@
           <input name="country_code" type="text" class="form-control" placeholder="Country">
         </div>
 
-        <small style="color: black;" id="countrycodeHelp" class="form-text text-muted">If you don't know your country code, please click <a target="_blank" href="http://www.nationsonline.org/oneworld/country_code_list.htm">this</a> to know(2 digit).</small>
+        <div class="input-group input-group-lg" style="margin-top: 5px;">
+          <span class="input-group-addon"><i class="fa fa-map-marker"></i></span>
+          <input name="city" type="text" class="form-control" placeholder="City">
+        </div>
+
+        <div class="input-group input-group-lg" style="margin-top: 5px;">
+          <span class="input-group-addon"><i class="fa fa-hospital-o"></i></span>
+          <input name="hospital" type="text" class="form-control" placeholder="Hospital">
+        </div>
+
+      <small style="color: black;" id="countrycodeHelp" class="form-text text-muted">If you don't know your country code, please click <a target="_blank" href="http://www.nationsonline.org/oneworld/country_code_list.htm">this</a> to know(2 digit).</small>
 
         <button type="button" class="float" onclick="register()"><label style="color:white;">Create Account</label></button>
        </form>
@@ -69,6 +80,7 @@
  </div>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+<script src="/static/pnotify.custom.min.js" type="text/javascript"></script>
 <script>
 
 
@@ -80,8 +92,10 @@ function register() {
     var repassword = document.querySelector('[name="repassword"]').value;
     var majority = document.querySelector('[name="majority"]').value;
     var countrycode = document.querySelector('[name="country_code"]').value;
+    var city = document.querySelector('[name="city"]').value;
+    var hospital = document.querySelector('[name="hospital"]').value;
 
-    var data = { "PROCESS":"Register", "FIRSTNAME":name, "LASTNAME":surname, "EMAIL":email, "PASSWORD":password, "RE-PASSWORD":repassword, "MAJORITY":majority, "COUNTRY":countrycode };
+    var data = { "PROCESS":"Register", "FIRSTNAME":name, "LASTNAME":surname, "EMAIL":email, "PASSWORD":password, "RE-PASSWORD":repassword, "MAJORITY":majority, "COUNTRY":countrycode, "CITY":city, "HOSPITAL":hospital };
     $.ajax({
       type: "POST",
       url: "/verifier",
@@ -89,9 +103,18 @@ function register() {
       dataType: 'json',
       success: function(data) {
         if ( data.STATUS == "OK" ) {
-          $(location).attr('href',data.target);
+          new PNotify({
+            title: 'Registration Successful.',
+            text: "Your register with successfully.",
+            type: 'success'
+          });
+          setTimeout(function(){ $(location).attr('href',data.target); }, 5000);
         } else {
-          alert(data.ERROR);
+          new PNotify({
+            title: 'Registration Unsuccessful.',
+            text: data.ERROR,
+            type: 'error'
+          });
         }
       }
     });
