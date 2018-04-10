@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from db_handler import Db, calculate_hash
-from tools import response_create, write_log_to_mysql
+from tools import response_create, write_log_to_mysql, get_username
 from flask import session, url_for, redirect
 from raw_data_handler import get_users_table
 
@@ -16,10 +16,6 @@ class Protector(Db):
     def __init__(self):
         super(Protector, self).__init__(couchbase_sup=False)
         self.system_username = "system"
-
-    @staticmethod
-    def get_username(uid):
-        return get_users_table(where="ID='" + uid + "'", column="F_NAME,L_NAME")[0]
 
     """
         Ana fonksiyonların bulunduğu alan aşağıdadır.Ana fonksiyonlar sadece bu alanda tanımlanmalıdır.
@@ -79,7 +75,7 @@ class Protector(Db):
             try:
                 self.write_mysql(changer)
                 session.clear()
-                log = "Password changed.User: {0}.".format(" ".join(self.get_username(user_id)))
+                log = "Password changed.User: {0}.".format(" ".join(get_username(user_id)))
                 write_log_to_mysql(event_type, ip, "INFO", log, self.system_username)
                 return response_create(json.dumps({"STATUS": "OK", "target": "/"}))
             except Exception as e:
@@ -88,12 +84,14 @@ class Protector(Db):
 
     def register(self, args, ip):
         event_type = "REGISTER"
+        if get_users_table(where="IP='" + ip + "'", count=True) > 0:
+            return response_create(json.dumps({"STATUS": "error", "ERROR": "Your IP address not permitted."}))
         if args["PASSWORD"] != args["RE-PASSWORD"]:
             return response_create(json.dumps({"STATUS": "error", "ERROR": "Your passwords does not match."}))
         try:
             uid = str(uuid.uuid4()).split("-")[-1]
-            self.write_mysql("INSERT INTO users(ID,F_NAME,L_NAME,EMAIL,MAJORITY,COUNTRY,PASSWORD,CITY,HOSPITAL) VALUES ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}')".format(
-                uid, args["FIRSTNAME"], args["LASTNAME"], args["EMAIL"], args["MAJORITY"], args["COUNTRY"], calculate_hash(args["PASSWORD"], "sha256"), args["CITY"], args["HOSPITAL"]
+            self.write_mysql("INSERT INTO users(ID,F_NAME,L_NAME,EMAIL,MAJORITY,COUNTRY,PASSWORD,CITY,HOSPITAL,IP) VALUES ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}')".format(
+                uid, args["FIRSTNAME"], args["LASTNAME"], args["EMAIL"], args["MAJORITY"], args["COUNTRY"], calculate_hash(args["PASSWORD"], "sha256"), args["CITY"], args["HOSPITAL"], ip
             ))
             log = "New user created.Name: {0}, Surname: {1}, Majority: {2}, Country: {3}, UserID: {4}.".format(args["FIRSTNAME"], args["LASTNAME"], args["MAJORITY"], args["COUNTRY"], uid)
             write_log_to_mysql(event_type, ip, "INFO", log, self.system_username)

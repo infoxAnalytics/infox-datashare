@@ -4,7 +4,6 @@
 from functools import wraps
 
 from flask import Flask, render_template, session, redirect, url_for, request
-from flask_pymongo import PyMongo
 from modules.main_handler import Processor
 from modules.security_handler import is_disabled_account, arguman_controller
 from modules.login_handler import Protector
@@ -13,9 +12,6 @@ import MySQLdb as mdb
 
 app = Flask(__name__)
 app.secret_key = "19d40f906d1f67cf66ccce9d2ea575604ad5f6a4497c5b3863c15eb7db5be779"
-app.config['MONGO_DBNAME'] = 'datashare'
-app.config['MONGO_URI'] = 'mongodb://localhost:27017/datashare'
-mongo = PyMongo(app)
 
 main_handler = Processor()
 login_handler = Protector()

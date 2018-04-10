@@ -4,6 +4,7 @@
 
 from db_handler import Db
 from flask import Response
+from raw_data_handler import get_users_table
 
 import datetime
 import random
@@ -61,3 +62,7 @@ def write_log_to_mysql(event_type, event_ip, severity, event_log, username):
 def get_random_pass():
     pass_gen = "abcdefghijklmnopqrstuvwxyz01234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()?"
     return "".join(random.sample(pass_gen, 8))
+
+
+def get_username(uid):
+    return get_users_table(where="ID='" + uid + "'", column="F_NAME,L_NAME")[0]

@@ -250,9 +250,9 @@ function sendDataToServer(survey) {
         success: function(data) {
             if ( data.STATUS == "OK" ) {
                     new PNotify({
-                    title: 'Oops !!! Something went wrong.',
-                    text: data.OK,
-                    type: 'error'
+                    title: 'Completed',
+                    text: data.MESSAGE,
+                    type: 'success'
             });
             } else {
             new PNotify({
