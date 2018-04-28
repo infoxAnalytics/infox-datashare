@@ -5,6 +5,7 @@
 from db_handler import Db
 from flask import Response
 from raw_data_handler import get_users_table
+from _mysql_exceptions import ProgrammingError
 
 import datetime
 import random
@@ -55,7 +56,7 @@ def write_log_to_mysql(event_type, event_ip, severity, event_log, username):
         )
         db_object.write_mysql(query)
         db_object.mysql_commit()
-    except:
+    except ProgrammingError:
         db_object.mysql_rollback()
 
 

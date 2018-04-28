@@ -24,9 +24,9 @@ class Protector(Db):
     def sign_in(self, email, password, ip):
         event_type = "LOGIN"
         password = calculate_hash(password, method="sha256")
-        session_environ = ["UID", "FIRSTNAME", "LASTNAME", "EMAIL", "MAJORITY", "COUNTRY", "STATUS"]
+        session_environ = ["UID", "FIRSTNAME", "LASTNAME", "EMAIL", "MAJORITY", "COUNTRY", "STATUS", "ROLE"]
         try:
-            user_data = get_users_table(where="EMAIL='" + email + "' AND PASSWORD='" + password + "'", column="ID,F_NAME,L_NAME,EMAIL,MAJORITY,COUNTRY,STATUS")[0]
+            user_data = get_users_table(where="EMAIL='" + email + "' AND PASSWORD='" + password + "'", column="ID,F_NAME,L_NAME,EMAIL,MAJORITY,COUNTRY,STATUS,ROLE")[0]
         except IndexError:
             user_data = tuple()
         if len(user_data) > 0:
@@ -42,11 +42,13 @@ class Protector(Db):
         write_log_to_mysql(event_type, ip, "WARNING", log, self.system_username)
         return response_create(json.dumps({"STATUS": "error", "ERROR": "Incorrect username or password."}))
 
-    def logout(self):
+    @staticmethod
+    def logout():
         session.clear()
         return redirect(url_for('login'))
 
-    def kickout(self):
+    @staticmethod
+    def kickout():
         session.clear()
         return """<body>
                 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>

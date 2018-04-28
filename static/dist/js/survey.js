@@ -249,18 +249,21 @@ function sendDataToServer(survey) {
         dataType: 'json',
         success: function(data) {
             if ( data.STATUS == "OK" ) {
-                    new PNotify({
+                new PNotify({
                     title: 'Completed',
                     text: data.MESSAGE,
                     type: 'success'
-            });
+                });
+                $("#surveyResult img").attr("src", "/static/images/completed.png");
             } else {
-            new PNotify({
+                new PNotify({
                     title: 'Oops !!! Something went wrong.',
                     text: data.ERROR,
                     type: 'error'
-            });
+                });
+                $("#surveyResult img").attr("src", "/static/images/error.png");
             }
         }
     });
+    $("#surveyResult img").css("display", "block");
 }

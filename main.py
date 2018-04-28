@@ -3,7 +3,7 @@
 
 from functools import wraps
 
-from flask import Flask, render_template, session, redirect, url_for, request
+from flask import Flask, render_template, session, redirect, url_for, request, abort
 from modules.main_handler import Processor
 from modules.security_handler import is_disabled_account, arguman_controller
 from modules.login_handler import Protector
@@ -25,8 +25,18 @@ def login_required(f):
         elif is_disabled_account(session.get("UID")):
             return login_handler.kickout()
         return f(*args, **kwargs)
-
     return decorated_function
+
+
+def requires_roles(*roles):
+    def wrapper(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            if session.get("ROLE") not in roles:
+                abort(401, "You don't have permission to do this action!!!")
+            return f(*args, **kwargs)
+        return wrapped
+    return wrapper
 
 
 @app.route("/")
@@ -56,6 +66,7 @@ def register():
 @login_required
 def survey():
     return render_template('survey.html', page_title="Infox Survey")
+
 
 @app.route("/analytics")
 @login_required
