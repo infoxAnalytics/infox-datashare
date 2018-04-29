@@ -7,6 +7,7 @@ from flask import Flask, render_template, session, redirect, url_for, request, a
 from modules.main_handler import Processor
 from modules.security_handler import is_disabled_account, arguman_controller, permitted_pages, permitted_application
 from modules.login_handler import Protector
+from modules.tools import get_event_users
 
 import MySQLdb as mdb
 
@@ -78,6 +79,13 @@ def analytics():
     return render_template('analytics.html', page_title="Infox Analytics", pages=permitted_pages(session.get("ROLE").split(",")))
 
 
+@app.route("/system-log")
+@login_required
+@requires_roles("Admin")
+def system_log():
+    return render_template('log.html', page_title="Infox Survey / System Log", pages=permitted_pages(session.get("ROLE").split(",")), log_event_users=get_event_users())
+
+
 @app.route("/verifier", methods=["POST"])
 def verifier():
     process = mdb.escape_string(request.form["PROCESS"])
@@ -112,6 +120,29 @@ def main_components():
     person = session.get("UID")
     if process == "SaveSurvey":
         return main_handler.save_survey_results(request.form["DATA"], person, ip)
+
+
+@app.route("/admin-components", methods=["POST"])
+@requires_roles("Admin")
+def admin_components():
+    process = mdb.escape_string(request.form["PROCESS"])
+    ip = request.headers.get("X-Forwarded-For")
+    person = session.get("UID")
+    if process == "SearchLog":
+        args = {
+            "ALL_LOG": mdb.escape_string(request.form["ALL_LOG"]),
+            "EVENT_IP": mdb.escape_string(request.form["EVENT_IP"]).split(";"),
+            "EVENT_KEYWORD": mdb.escape_string(request.form["EVENT_KEYWORD"]).split(";"),
+            "EVENT_START_DATE": mdb.escape_string(request.form["EVENT_START_DATE"]),
+            "EVENT_END_DATE": mdb.escape_string(request.form["EVENT_END_DATE"]),
+            "EVENT_TYPE": mdb.escape_string(request.form["EVENT_TYPE"]).split(","),
+            "EVENT_SEVERITY": mdb.escape_string(request.form["EVENT_SEVERITY"]).split(","),
+            "EVENT_USERS": mdb.escape_string(request.form["EVENT_USERS"]).split(",")
+        }
+        control = arguman_controller(args, log_patern=True)
+        if not control[0]:
+            return control[1]
+        return main_handler.search_log(args, person, ip)
 
 
 if __name__ == '__main__':

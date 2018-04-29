@@ -4,7 +4,7 @@
 
 from db_handler import Db
 from flask import Response
-from raw_data_handler import get_users_table
+from raw_data_handler import get_users_table, get_system_logs_table
 from _mysql_exceptions import ProgrammingError
 
 import datetime
@@ -67,3 +67,7 @@ def get_random_pass():
 
 def get_username(uid):
     return get_users_table(where="ID='" + uid + "'", column="F_NAME,L_NAME")[0]
+
+
+def get_event_users():
+    return get_system_logs_table(column="DISTINCT(USERNAME)")
