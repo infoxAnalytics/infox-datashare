@@ -3,12 +3,13 @@
 
 from db_handler import Db, calculate_hash
 from tools import response_create, write_log_to_mysql, get_username
-from flask import session, url_for, redirect
+from flask import session, url_for, redirect, current_app
 from raw_data_handler import get_users_table
 
 import json
 import re
 import uuid
+import os
 import MySQLdb as mdb
 
 
@@ -24,9 +25,9 @@ class Protector(Db):
     def sign_in(self, email, password, ip):
         event_type = "LOGIN"
         password = calculate_hash(password, method="sha256")
-        session_environ = ["UID", "FIRSTNAME", "LASTNAME", "EMAIL", "MAJORITY", "COUNTRY", "STATUS", "ROLE"]
+        session_environ = ["UID", "FIRSTNAME", "LASTNAME", "EMAIL", "MAJORITY", "COUNTRY", "STATUS", "ROLE", "CITY", "HOSPITAL"]
         try:
-            user_data = get_users_table(where="EMAIL='" + email + "' AND PASSWORD='" + password + "'", column="ID,F_NAME,L_NAME,EMAIL,MAJORITY,COUNTRY,STATUS,ROLE")[0]
+            user_data = get_users_table(where="EMAIL='" + email + "' AND PASSWORD='" + password + "'", column="ID,F_NAME,L_NAME,EMAIL,MAJORITY,COUNTRY,STATUS,ROLE,CITY,HOSPITAL")[0]
         except IndexError:
             user_data = tuple()
         if len(user_data) > 0:
@@ -92,9 +93,12 @@ class Protector(Db):
             return response_create(json.dumps({"STATUS": "error", "ERROR": "Your passwords does not match."}))
         try:
             uid = str(uuid.uuid4()).split("-")[-1]
+            user_base_folder = os.path.join(current_app.config["USER_BASE"], uuid)
             self.write_mysql("INSERT INTO users(ID,F_NAME,L_NAME,EMAIL,MAJORITY,COUNTRY,PASSWORD,CITY,HOSPITAL,IP) VALUES ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}')".format(
                 uid, args["FIRSTNAME"], args["LASTNAME"], args["EMAIL"], args["MAJORITY"], args["COUNTRY"], calculate_hash(args["PASSWORD"], "sha256"), args["CITY"], args["HOSPITAL"], ip
             ))
+            self.write_mysql("INSERT INTO user_profile(ID,BASE_FOLDER) VALUES ('{0}','{1}')".format(uid, user_base_folder))
+            os.mkdir(user_base_folder)
             log = "New user created.Name: {0}, Surname: {1}, Majority: {2}, Country: {3}, UserID: {4}.".format(args["FIRSTNAME"], args["LASTNAME"], args["MAJORITY"], args["COUNTRY"], uid)
             write_log_to_mysql(event_type, ip, "INFO", log, self.system_username)
             self.mysql_commit()

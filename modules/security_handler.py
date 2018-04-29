@@ -2,12 +2,17 @@
 # -*- coding: utf-8 -*-
 
 
-from tools import response_create
+from tools import response_create, get_user_base_folder
 from main_handler import Processor
 from raw_data_handler import get_users_table, get_country_table, get_pages_table, get_system_logs_table
+from flask import url_for, redirect
 
 import json
 import re
+import uuid
+import os
+import magic
+import time
 
 main_handler = Processor()
 
@@ -95,3 +100,36 @@ def permitted_application(user_roles):
         where_clause += " OR ROLE LIKE '%{0}%'".format(r)
     where_clause += ") AND APPLICATION='True'"
     return get_pages_table(where=where_clause, column="NAME,LOCATION,IMAGE")
+
+
+def uploaded_file_security(_file, _type, uid):
+    types = {
+        "picture": [
+            "image/jpeg",
+            "image/png",
+            "image/png",
+            "image/tiff",
+            "image/vnd.wap.wbmp",
+            "image/x-icon",
+            "image/x-jng",
+            "image/x-ms-bmp",
+            "image/svg+xml",
+            "image/webp"
+        ]
+    }
+    tmp_base = os.path.join("/tmp", str(uuid.uuid4()).split("-")[-1])
+    os.mkdir(tmp_base)
+    _file.save(os.path.join(tmp_base, _file.filename))
+    _file_mime = magic.from_file(os.path.join(tmp_base, _file.filename), mime=True)
+    if _file_mime in types[_type]:
+        user_base = get_user_base_folder(uid)
+        if _type == "picture":
+            if not os.path.exists(os.path.join(user_base, "images")):
+                os.mkdir(os.path.join(user_base, "images"))
+                time.sleep(0.5)
+            os.system("mv " + os.path.join(tmp_base, _file.filename) + " " + os.path.join(user_base, "images/{0}.{1}".format(uid, _file.filename.split(".")[-1])))
+            time.sleep(0.5)
+            os.system("rm -rf " + tmp_base)
+            main_handler.write_mysql("UPDATE user_profile SET IMAGE='{0}.{1}' WHERE ID='{0}'".format(uid, _file.filename.split(".")[-1]))
+            return redirect(url_for("profile"))
+    return False, json.dumps({"STATUS": "error", "ERROR": "Your image type is incompatible."})

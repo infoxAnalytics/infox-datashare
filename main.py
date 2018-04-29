@@ -5,14 +5,15 @@ from functools import wraps
 
 from flask import Flask, render_template, session, redirect, url_for, request, abort
 from modules.main_handler import Processor
-from modules.security_handler import is_disabled_account, arguman_controller, permitted_pages, permitted_application
+from modules.security_handler import is_disabled_account, arguman_controller, permitted_pages, permitted_application, uploaded_file_security
 from modules.login_handler import Protector
-from modules.tools import get_event_users
+from modules.tools import get_event_users, get_country_name, get_profile_pic
 
 import MySQLdb as mdb
 
 app = Flask(__name__)
 app.secret_key = "19d40f906d1f67cf66ccce9d2ea575604ad5f6a4497c5b3863c15eb7db5be779"
+app.config["USER_BASE"] = "/home/ghost/Desktop/Workshop/AnalyticsProject/infox-datashare/static/user_base"
 
 main_handler = Processor()
 login_handler = Protector()
@@ -26,6 +27,7 @@ def login_required(f):
         elif is_disabled_account(session.get("UID")):
             return login_handler.kickout()
         return f(*args, **kwargs)
+
     return decorated_function
 
 
@@ -37,7 +39,9 @@ def requires_roles(*roles):
                 if r in roles:
                     return f(*args, **kwargs)
             abort(401, "You don't have permission to do this action!!!")
+
         return wrapped
+
     return wrapper
 
 
@@ -69,21 +73,34 @@ def index():
 @login_required
 @requires_roles("User", "Admin")
 def survey():
-    return render_template('survey.html', page_title="Infox Survey", pages=permitted_pages(session.get("ROLE").split(",")))
+    return render_template('survey.html', page_title="Infox Data Share / Survey", pages=permitted_pages(session.get("ROLE").split(",")))
 
 
 @app.route("/analytics")
 @login_required
 @requires_roles("User", "Admin")
 def analytics():
-    return render_template('analytics.html', page_title="Infox Analytics", pages=permitted_pages(session.get("ROLE").split(",")))
+    return render_template('analytics.html', page_title="Infox Data Share / Analytics", pages=permitted_pages(session.get("ROLE").split(",")))
+
+
+@app.route("/profile")
+@login_required
+@requires_roles("User", "Admin")
+def profile():
+    return render_template(
+        'profile.html',
+        page_title="Infox Data Share / Profile",
+        pages=permitted_pages(session.get("ROLE").split(",")),
+        get_country_name=get_country_name,
+        get_profile_pic=get_profile_pic(session.get("UID"))
+    )
 
 
 @app.route("/system-log")
 @login_required
 @requires_roles("Admin")
 def system_log():
-    return render_template('log.html', page_title="Infox Survey / System Log", pages=permitted_pages(session.get("ROLE").split(",")), log_event_users=get_event_users())
+    return render_template('log.html', page_title="Infox Data Share / System Log", pages=permitted_pages(session.get("ROLE").split(",")), log_event_users=get_event_users())
 
 
 @app.route("/verifier", methods=["POST"])
@@ -119,7 +136,9 @@ def main_components():
     ip = request.headers.get("X-Forwarded-For")
     person = session.get("UID")
     if process == "SaveSurvey":
-        return main_handler.save_survey_results(request.form["DATA"], person, ip)
+        return main_handler.save_survey_results(args=request.form["DATA"], person=person, ip=ip)
+    elif process == "ProfilePicChange":
+        return uploaded_file_security(_file=request.files["profile_pic"], _type="picture", uid=session.get("UID"))
 
 
 @app.route("/admin-components", methods=["POST"])
@@ -142,7 +161,7 @@ def admin_components():
         control = arguman_controller(args, log_patern=True)
         if not control[0]:
             return control[1]
-        return main_handler.search_log(args, person, ip)
+        return main_handler.search_log(args=args, person=person, ip=ip)
 
 
 if __name__ == '__main__':

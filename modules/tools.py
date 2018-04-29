@@ -4,11 +4,13 @@
 
 from db_handler import Db
 from flask import Response
-from raw_data_handler import get_users_table, get_system_logs_table
+from raw_data_handler import get_users_table, get_system_logs_table, get_country_table, get_user_profile_table
 from _mysql_exceptions import ProgrammingError
 
 import datetime
 import random
+import os
+import re
 
 db_object = Db()
 
@@ -71,3 +73,19 @@ def get_username(uid):
 
 def get_event_users():
     return get_system_logs_table(column="DISTINCT(USERNAME)")
+
+
+def get_country_name(c_code):
+    return get_country_table(where="CODE='" + c_code + "'", column="NAME")[0][0]
+
+
+def get_profile_pic(uid):
+    folder_patern = re.compile("/static/.*")
+    folder, _file =  get_user_profile_table(where="ID='" + uid + "'", column="BASE_FOLDER,IMAGE")[0]
+    if not os.path.exists(os.path.join(folder, "images/" + _file)):
+        return "http://ssl.gstatic.com/accounts/ui/avatar_2x.png"
+    return os.path.join(folder_patern.search(folder).group(), "images/" + _file)
+
+
+def get_user_base_folder(uid):
+    return get_user_profile_table(where="ID='" + uid + "'", column="BASE_FOLDER")[0][0]
