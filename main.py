@@ -5,7 +5,7 @@ from functools import wraps
 
 from flask import Flask, render_template, session, redirect, url_for, request, abort
 from modules.main_handler import Processor
-from modules.security_handler import is_disabled_account, arguman_controller
+from modules.security_handler import is_disabled_account, arguman_controller, permitted_pages, permitted_application
 from modules.login_handler import Protector
 
 import MySQLdb as mdb
@@ -32,11 +32,17 @@ def requires_roles(*roles):
     def wrapper(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
-            if session.get("ROLE") not in roles:
-                abort(401, "You don't have permission to do this action!!!")
-            return f(*args, **kwargs)
+            for r in session.get("ROLE").split(","):
+                if r in roles:
+                    return f(*args, **kwargs)
+            abort(401, "You don't have permission to do this action!!!")
         return wrapped
     return wrapper
+
+
+@app.route("/register")
+def register():
+    return render_template('register.html', page_title="Infox Data Share")
 
 
 @app.route("/")
@@ -53,25 +59,23 @@ def logout():
 
 @app.route("/main")
 @login_required
+@requires_roles("User", "Admin")
 def index():
-    return render_template('index.html', page_title="Infox Data Share")
-
-
-@app.route("/register")
-def register():
-    return render_template('register.html', page_title="Infox Data Share")
+    return render_template('index.html', page_title="Infox Data Share", pages=permitted_pages(session.get("ROLE").split(",")), application=permitted_application(session.get("ROLE").split(",")))
 
 
 @app.route("/survey")
 @login_required
+@requires_roles("User", "Admin")
 def survey():
-    return render_template('survey.html', page_title="Infox Survey")
+    return render_template('survey.html', page_title="Infox Survey", pages=permitted_pages(session.get("ROLE").split(",")))
 
 
 @app.route("/analytics")
 @login_required
+@requires_roles("User", "Admin")
 def analytics():
-    return render_template('analytics.html', page_title="Infox Analytics")
+    return render_template('analytics.html', page_title="Infox Analytics", pages=permitted_pages(session.get("ROLE").split(",")))
 
 
 @app.route("/verifier", methods=["POST"])
@@ -101,6 +105,7 @@ def verifier():
 
 
 @app.route("/main-components", methods=["POST"])
+@requires_roles("User", "Admin")
 def main_components():
     process = mdb.escape_string(request.form["PROCESS"])
     ip = request.headers.get("X-Forwarded-For")

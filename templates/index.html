@@ -50,7 +50,9 @@
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Options <span class="caret"></span></a>
               <ul class="dropdown-menu">
-                <li><a href="/profile">Profile</a></li>
+                {% for p in pages %}
+                    <li><a href="{{ p[1] }}">{{ p[0] }}</a></li>
+                {% endfor %}
               </ul>
             </li>
           </ul>
@@ -70,14 +72,13 @@
         <p>Proje kapsamında kullanabileceğiniz hizmetler aşağıda listelenmiştir.Bu alandan proje seçimini yaparak ilerleyebilirsiniz.</p>
       </div>
 
-        <div class="row">
-            <div id="survey" class="col-md-3" data-toggle="tooltip" title="Survey" onclick="getResult(this.id)">
-                <img class="box shadow" src="/static/images/survey.png">
-            </div>
-            <div id="analytics" class="col-md-3" data-toggle="tooltip" title="Analytics" onclick="getResult(this.id)">
-                <img class="box shadow" src="/static/images/analytics.png">
-            </div>
-        </div>
+      <div class="row">
+        {% for ap in application %}
+          <div class="col-md-3" data-toggle="tooltip" title="{{ ap[0] }}" onclick="getResult('{{ ap[1] }}')">
+            <img class="box shadow" src="{{ ap[2] }}">
+          </div>
+        {% endfor %}
+      </div>
 
     </div> <!-- /container -->
 

@@ -4,7 +4,7 @@
 
 from tools import response_create
 from main_handler import Processor
-from raw_data_handler import get_users_table, get_country_table
+from raw_data_handler import get_users_table, get_country_table, get_pages_table
 
 import json
 import re
@@ -50,3 +50,19 @@ def arguman_controller(args, access=False):
         return True, 0
     except Exception as e:
         return False, response_create(json.dumps({"STATUS": "error", "ERROR": "Something went wrong.Exception is : " + str(e)}))
+
+
+def permitted_pages(user_roles):
+    where_clause = "(ROLE LIKE '%All%'"
+    for r in user_roles:
+        where_clause += " OR ROLE LIKE '%{0}%'".format(r)
+    where_clause += ") AND APPLICATION='False'"
+    return get_pages_table(where=where_clause, column="NAME,LOCATION")
+
+
+def permitted_application(user_roles):
+    where_clause = "(ROLE LIKE '%All%'"
+    for r in user_roles:
+        where_clause += " OR ROLE LIKE '%{0}%'".format(r)
+    where_clause += ") AND APPLICATION='True'"
+    return get_pages_table(where=where_clause, column="NAME,LOCATION,IMAGE")
