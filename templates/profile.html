@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel='shortcut icon' type='image/x-icon' href='http://cdn2.n11.com.tr/static/favicon.ico' />
+
+    <title>{{ page_title }}</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/static/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/pnotify.custom.min.css" rel="stylesheet">
+    <link href="/static/custom.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.10.13/datatables.min.css"/>
+    <link href="/static/pnotify.custom.min.css" rel="stylesheet">
+  </head>
+
+  <body>
+
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel">Change Photo</h4>
+          </div>
+          <div class="modal-body">
+            <form method="post" enctype="multipart/form-data" action="/main-components" id="change_profile_pic">
+              <input type="file" name="profile_pic" />
+              <input name="PROCESS" value="ProfilePicChange" hidden="hidden">
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-info" onclick="$('#change_profile_pic').submit()">Save changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <img id="loading" src="/static/images/loading.gif" style="position:absolute;z-index:9999;width:100%;display:none;opacity:0.5">
+
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="main">{{ page_title }}</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/main">Home</a></li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Options <span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                {% for p in pages %}
+                    <li><a href="{{ p[1] }}">{{ p[0] }}</a></li>
+                {% endfor %}
+              </ul>
+            </li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a>{{ session.get("FIRSTNAME") }} {{ session.get("LASTNAME") }}</a></li>
+            <li><a href="/logout" role="button">Logout</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+
+        <div class="row" style="margin-top: 100px;">
+          <div class="col-md-3"><!--left col-->
+
+            <div class="text-center">
+              <img width="192px" height="192px" src="{{ get_profile_pic }}" class="avatar img-circle img-thumbnail" alt="avatar">
+              <br><br>
+              <button type="button" class="btn btn-info" data-toggle="modal" data-target="#myModal">Change Photo</button>
+            </div><hr/><br>
+
+
+            <div class="panel panel-default">
+              <div class="panel-heading">Personal Info <i class="fa fa-link"></i></div>
+              <div style="padding: 2px 15px;" class="panel-body"><i class="fa fa-envelope-o"></i>&nbsp;&nbsp;&nbsp;&nbsp;<a href="{{ session.get('EMAIL') }}">{{ session.get('EMAIL') }}</a></div>
+              <div style="padding: 2px 15px;" class="panel-body"><i class="fa fa-user-md"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i>{{ session.get('MAJORITY') }}</i></div>
+              <div style="padding: 2px 15px;" class="panel-body"><i class="fa fa-flag"></i>&nbsp;&nbsp;&nbsp;<i>{{ get_country_name(session.get('COUNTRY')) }}</i></div>
+              <div style="padding: 2px 15px;" class="panel-body"><i class="fa fa-map-marker"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i>{{ session.get('CITY') }}</i></div>
+              <div style="padding: 2px 15px;" class="panel-body"><i class="fa fa-hospital-o"></i>&nbsp;&nbsp;&nbsp;<i>{{ session.get('HOSPITAL') }}</i></div>
+            </div>
+
+
+            <ul class="list-group">
+              <li class="list-group-item text-muted">Activity <i class="fa fa-user-md"></i></li>
+              <li class="list-group-item text-right"><span class="pull-left"><strong>Diagnosis</strong></span> 125</li>
+              <li class="list-group-item text-right"><span class="pull-left"><strong>Surgery</strong></span> 13</li>
+              <li class="list-group-item text-right"><span class="pull-left"><strong>Contribution</strong></span> 37</li>
+              <li class="list-group-item text-right"><span class="pull-left"><strong>Completed Survey</strong></span> 78</li>
+            </ul>
+
+            <div class="panel panel-default">
+              <div class="panel-heading">Social Media</div>
+              <div class="panel-body">
+                  <i class="fa fa-facebook fa-2x"></i> <i class="fa fa-github fa-2x"></i> <i class="fa fa-twitter fa-2x"></i> <i class="fa fa-pinterest fa-2x"></i> <i class="fa fa-google-plus fa-2x"></i>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+    </div> <!-- /container -->
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
+    <script src="/static/dist/js/bootstrap.min.js"></script>
+    <script src="/static/pnotify.custom.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/js/bootstrap-select.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.13/datatables.min.js"></script>
+    <script src="/static/main_js/uam.js"></script>
+    <script src="/static/pnotify.custom.min.js"></script>
+    <script>
+
+        $(document).on({
+            ajaxStart: function() { $('#loading').css("display","block"); },
+            ajaxStop: function() { $('#loading').css("display","none"); }
+        });
+
+
+    </script>
+  </body>
+</html>
