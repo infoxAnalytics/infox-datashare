@@ -8,6 +8,7 @@ from modules.main_handler import Processor
 from modules.security_handler import is_disabled_account, arguman_controller, permitted_pages, permitted_application, uploaded_file_security
 from modules.login_handler import Protector
 from modules.tools import get_event_users, get_country_name, get_profile_pic
+from datetime import timedelta
 
 import MySQLdb as mdb
 
@@ -19,6 +20,14 @@ main_handler = Processor()
 login_handler = Protector()
 
 
+@app.before_request
+def make_session_permanent():
+    if session.get("logged-in") is not None:
+        session.permanent = True
+        app.permanent_session_lifetime = timedelta(minutes=30)
+        session.modified = True
+
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -27,7 +36,6 @@ def login_required(f):
         elif is_disabled_account(session.get("UID")):
             return login_handler.kickout()
         return f(*args, **kwargs)
-
     return decorated_function
 
 
@@ -39,9 +47,7 @@ def requires_roles(*roles):
                 if r in roles:
                     return f(*args, **kwargs)
             abort(401, "You don't have permission to do this action!!!")
-
         return wrapped
-
     return wrapper
 
 
@@ -73,14 +79,14 @@ def index():
 @login_required
 @requires_roles("User", "Admin")
 def survey():
-    return render_template('survey.html', page_title="Infox Data Share / Survey", pages=permitted_pages(session.get("ROLE").split(",")))
+    return render_template('survey.html', page_title="Infox Data Share", pages=permitted_pages(session.get("ROLE").split(",")))
 
 
 @app.route("/analytics")
 @login_required
 @requires_roles("User", "Admin")
 def analytics():
-    return render_template('analytics.html', page_title="Infox Data Share / Analytics", pages=permitted_pages(session.get("ROLE").split(",")))
+    return render_template('analytics.html', page_title="Infox Data Share", pages=permitted_pages(session.get("ROLE").split(",")))
 
 
 @app.route("/profile")
@@ -89,7 +95,7 @@ def analytics():
 def profile():
     return render_template(
         'profile.html',
-        page_title="Infox Data Share / Profile",
+        page_title="Infox Data Share",
         pages=permitted_pages(session.get("ROLE").split(",")),
         get_country_name=get_country_name,
         get_profile_pic=get_profile_pic(session.get("UID"))
@@ -100,7 +106,7 @@ def profile():
 @login_required
 @requires_roles("Admin")
 def system_log():
-    return render_template('log.html', page_title="Infox Data Share / System Log", pages=permitted_pages(session.get("ROLE").split(",")), log_event_users=get_event_users())
+    return render_template('log.html', page_title="Infox Data Share", pages=permitted_pages(session.get("ROLE").split(",")), log_event_users=get_event_users())
 
 
 @app.route("/verifier", methods=["POST"])
