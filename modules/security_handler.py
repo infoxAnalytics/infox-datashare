@@ -90,7 +90,7 @@ def permitted_pages(user_roles):
     where_clause = "(ROLE LIKE '%All%'"
     for r in user_roles:
         where_clause += " OR ROLE LIKE '%{0}%'".format(r)
-    where_clause += ") AND APPLICATION='False'"
+    where_clause += ") AND PAGE_TYPE='Option'"
     return get_pages_table(where=where_clause, column="NAME,LOCATION")
 
 
@@ -98,7 +98,7 @@ def permitted_application(user_roles):
     where_clause = "(ROLE LIKE '%All%'"
     for r in user_roles:
         where_clause += " OR ROLE LIKE '%{0}%'".format(r)
-    where_clause += ") AND APPLICATION='True'"
+    where_clause += ") AND PAGE_TYPE='Property'"
     return get_pages_table(where=where_clause, column="NAME,LOCATION,IMAGE")
 
 
