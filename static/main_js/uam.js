@@ -3,6 +3,11 @@ function getResult(x) {
 }
 
 
+function getSurvey(x) {
+    $(location).attr('href', '/do-survey?name='+x);
+}
+
+
 // Main function jobs
 /// Create table for system logs
 function create_table_for_system_logs(x) {

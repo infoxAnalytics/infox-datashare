@@ -89,7 +89,6 @@ span.tag a {
 }
 
 .box {
-    background-image: url("/static/images/survey.png");
     border: 0.1px solid white;
     border-radius: 10rem;
     height: 20rem;

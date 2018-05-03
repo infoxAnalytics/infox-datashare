@@ -9,16 +9,17 @@
     <meta name="author" content="">
     <link rel='shortcut icon' type='image/x-icon' href='/static/images/hlogo.png' />
 
-    <title>{{ page_title }} / Surveys</title>
+    <title>{{ page_title }} / {{ survey_name }}</title>
 
     <!-- Bootstrap core CSS -->
     <link href="/static/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="/static/pnotify.custom.min.css" rel="stylesheet">
-    <link href="/static/custom.css" rel="stylesheet">
+      <link href="/static/custom.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.10.13/datatables.min.css"/>
 
-    <link href="/static/pnotify.custom.min.css" rel="stylesheet">
+    <link href="https://surveyjs.azureedge.net/1.0.14/survey.css" type="text/css" rel="stylesheet"/>
+      <link href="/static/pnotify.custom.min.css" rel="stylesheet">
 
 
 
@@ -31,7 +32,7 @@
 
   <body>
 
-        <img id="loading" src="/static/images/loading.gif" style="position:absolute;z-index:9999;width:100%;display:none;opacity:0.5">
+    <img id="loading" src="/static/images/loading.gif" style="position:absolute;z-index:9999;width:100%;display:none;opacity:0.5">
 
 
     <!-- Fixed navbar -->
@@ -71,17 +72,15 @@
       <!-- Main component for a primary marketing message or call to action -->
       <div class="jumbotron">
         <h2>Welcome to {{ page_title }}</h2>
-        <p>Anket kısmına hoşgeldiniz. Aşağıdaki alandan istediğiniz anketi seçebilirsiniz.</p>
+        <p>{{ survey_explanation|safe }}</p>
       </div>
 
-        <div class="row">
-          {% for ap in application %}
-            <div class="col-md-3" data-toggle="tooltip" title="{{ ap[0] }}" onclick="getSurvey('{{ ap[3] }}')">
-              <label style="text-align: center;width: 100%;">{{ ap[0] }}</label>
-              <img style="margin-left: 12%;" class="box shadow" src="{{ ap[2] }}">
-            </div>
-          {% endfor %}
-        </div>
+      <div class="row">
+          <div id="surveyElement" class="col-md-12"></div>
+          <div id="surveyResult" class="col-md-12">
+            <img src="" width="500px" style="display: none; margin-left: 330px; margin-bottom: 40px;">
+          </div>
+      </div>
 
     </div> <!-- /container -->
 
@@ -97,12 +96,55 @@
     <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.13/datatables.min.js"></script>
     <script src="/static/main_js/uam.js"></script>
     <script src="/static/pnotify.custom.min.js"></script>
+    <script src="https://surveyjs.azureedge.net/1.0.14/survey.jquery.js"></script>
     <script>
 
         $(document).on({
             ajaxStart: function() { $('#loading').css("display","block"); },
             ajaxStop: function() { $('#loading').css("display","none"); }
         });
+
+        Survey
+            .StylesManager
+            .applyTheme("darkblue");
+
+        var json = {{ survey_json|safe }};
+
+        window.survey = new Survey.Model(json);
+
+        $("#surveyElement").Survey({
+            model: survey,
+            onComplete:sendDataToServer
+        });
+
+        function sendDataToServer(survey) {
+          var data = {"PROCESS": "SaveSurvey", "DATA": JSON.stringify(survey.data), "SURVEY_ID": "{{ survey_id }}"}
+          // Ajax requester body
+            $.ajax({
+                type: 'POST',
+                url: '/main-components',
+                data: data,
+                dataType: 'json',
+                success: function(data) {
+                    if ( data.STATUS == "OK" ) {
+                        new PNotify({
+                            title: 'Completed',
+                            text: data.MESSAGE,
+                            type: 'success'
+                        });
+                        $("#surveyResult img").attr("src", "/static/images/completed.png");
+                    } else {
+                        new PNotify({
+                            title: 'Oops !!! Something went wrong.',
+                            text: data.ERROR,
+                            type: 'error'
+                        });
+                        $("#surveyResult img").attr("src", "/static/images/error.png");
+                    }
+                }
+            });
+            $("#surveyResult img").css("display", "block");
+        }
 
 
     </script>

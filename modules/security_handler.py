@@ -102,6 +102,14 @@ def permitted_application(user_roles):
     return get_pages_table(where=where_clause, column="NAME,LOCATION,IMAGE")
 
 
+def permitted_sub_application(user_roles, property_name):
+    where_clause = "(ROLE LIKE '%All%'"
+    for r in user_roles:
+        where_clause += " OR ROLE LIKE '%{0}%'".format(r)
+    where_clause += ") AND PAGE_TYPE='SubProperty' AND PARENT_PAGE='{0}'".format(property_name)
+    return get_pages_table(where=where_clause, column="NAME,LOCATION,IMAGE,RELATIONAL_ID")
+
+
 def uploaded_file_security(_file, _type, uid):
     types = {
         "picture": [

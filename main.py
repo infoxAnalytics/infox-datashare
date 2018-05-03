@@ -5,7 +5,7 @@ from functools import wraps
 
 from flask import Flask, render_template, session, redirect, url_for, request, abort
 from modules.main_handler import Processor
-from modules.security_handler import is_disabled_account, arguman_controller, permitted_pages, permitted_application, uploaded_file_security
+from modules.security_handler import is_disabled_account, arguman_controller, permitted_pages, permitted_application, uploaded_file_security, permitted_sub_application
 from modules.login_handler import Protector
 from modules.tools import get_event_users, get_country_name, get_profile_pic
 from datetime import timedelta
@@ -51,6 +51,14 @@ def requires_roles(*roles):
     return wrapper
 
 
+def before_process(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        session.pop("survey_id", None)
+        return f(*args, **kwargs)
+    return decorated_function
+
+
 @app.route("/register")
 def register():
     return render_template('register.html', page_title="Infox Data Share")
@@ -71,27 +79,64 @@ def logout():
 @app.route("/main")
 @login_required
 @requires_roles("User", "Admin")
+@before_process
 def index():
-    return render_template('index.html', page_title="Infox Data Share", pages=permitted_pages(session.get("ROLE").split(",")), application=permitted_application(session.get("ROLE").split(",")))
+    return render_template(
+        'index.html',
+        page_title="Infox Data Share",
+        pages=permitted_pages(session.get("ROLE").split(",")),
+        application=permitted_application(session.get("ROLE").split(","))
+    )
 
 
 @app.route("/survey")
 @login_required
 @requires_roles("User", "Admin")
+@before_process
 def survey():
-    return render_template('survey.html', page_title="Infox Data Share", pages=permitted_pages(session.get("ROLE").split(",")))
+    return render_template(
+        'survey.html',
+        page_title="Infox Data Share",
+        pages=permitted_pages(session.get("ROLE").split(",")),
+        application=permitted_sub_application(session.get("ROLE").split(","), "Survey")
+    )
+
+
+@app.route("/do-survey")
+@login_required
+@requires_roles("User", "Admin")
+@before_process
+def do_survey():
+    survey_id = request.args.get("name")
+    session["survey_id"] = survey_id
+    p_data = main_handler.get_survey(survey_id)
+    return render_template(
+        'do_survey.html',
+        page_title="Infox Data Share",
+        pages=permitted_pages(session.get("ROLE").split(",")),
+        survey_name=p_data[1],
+        survey_explanation=p_data[3],
+        survey_json=p_data[2],
+        survey_id=survey_id
+    )
 
 
 @app.route("/analytics")
 @login_required
 @requires_roles("User", "Admin")
+@before_process
 def analytics():
-    return render_template('analytics.html', page_title="Infox Data Share", pages=permitted_pages(session.get("ROLE").split(",")))
+    return render_template(
+        'analytics.html',
+        page_title="Infox Data Share",
+        pages=permitted_pages(session.get("ROLE").split(","))
+    )
 
 
 @app.route("/profile")
 @login_required
 @requires_roles("User", "Admin")
+@before_process
 def profile():
     return render_template(
         'profile.html',
@@ -105,8 +150,14 @@ def profile():
 @app.route("/system-log")
 @login_required
 @requires_roles("Admin")
+@before_process
 def system_log():
-    return render_template('log.html', page_title="Infox Data Share", pages=permitted_pages(session.get("ROLE").split(",")), log_event_users=get_event_users())
+    return render_template(
+        'log.html',
+        page_title="Infox Data Share",
+        pages=permitted_pages(session.get("ROLE").split(",")),
+        log_event_users=get_event_users()
+    )
 
 
 @app.route("/verifier", methods=["POST"])
@@ -142,7 +193,7 @@ def main_components():
     ip = request.headers.get("X-Forwarded-For")
     person = session.get("UID")
     if process == "SaveSurvey":
-        return main_handler.save_survey_results(args=request.form["DATA"], person=person, ip=ip)
+        return main_handler.save_survey_results(args=(request.form["DATA"], request.form["SURVEY_ID"]), person=person, ip=ip)
     elif process == "ProfilePicChange":
         return uploaded_file_security(_file=request.files["profile_pic"], _type="picture", uid=session.get("UID"))
 

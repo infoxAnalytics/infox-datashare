@@ -4,7 +4,8 @@
 
 from db_handler import Db
 from tools import write_log_to_mysql, get_username, response_create, datetime_patern
-from raw_data_handler import get_system_logs_table
+from raw_data_handler import get_system_logs_table, get_surveys_table
+from flask import abort, session
 
 import json
 
@@ -18,13 +19,19 @@ class Processor(Db):
     def save_survey_results(self, args, person, ip):
         event_type = "SAVE_SURVEY"
         try:
-            survey_id = self.mongodb.survey.insert_one(json.loads(args))
+            survey_data, survey_session_id = args
+            survey_data = json.loads(survey_data)
+            if session.get("survey_id") != survey_session_id:
+                return response_create(json.dumps({"STATUS": "error", "ERROR": "Survey ID is wrong."}))
+            survey_data["survey_identifier"] = survey_session_id
+            survey_id = self.mongodb.survey.insert_one(survey_data)
+            session.pop("survey_id", None)
             f_name, l_name = get_username(person)
             log = "Survey completed by \"{0} {1}\".Survey ID: {2}".format(f_name.title(), l_name.upper(), survey_id.inserted_id)
             write_log_to_mysql(event_type, ip, "INFO", log, self.system_username)
             self.mysql_commit()
             return response_create(json.dumps({"STATUS": "OK", "MESSAGE": "Complete survey successful."}))
-        except KeyboardInterrupt as e:
+        except Exception as e:
             self.mysql_rollback()
             return response_create(json.dumps({"STATUS": "error", "ERROR": str(e)}))
 
@@ -83,34 +90,41 @@ class Processor(Db):
             if where.endswith("WHERE"):
                 return response_create(json.dumps({"STATUS": "error", "ERROR": "No results found for your search criteria."}))
         try:
-            if len(where) > 0:
+            if where is not None and len(where) > 0:
                 result_set = get_system_logs_table(where=where)
-                if len(result_set) > 0:
-                    html = []
-                    colors = {
-                        "ERROR": "btn btn-danger",
-                        "INFO": "btn btn-info",
-                        "WARNING": "btn btn-warning",
-                        "SUCCESS": "btn btn-success",
-                        "CRITICAL": "btn btn-critical",
-                        "ATTACK": "btn btn-attack"
+            else:
+                result_set = get_system_logs_table()
+            if len(result_set) > 0:
+                html = []
+                colors = {
+                    "ERROR": "btn btn-danger",
+                    "INFO": "btn btn-info",
+                    "WARNING": "btn btn-warning",
+                    "SUCCESS": "btn btn-success",
+                    "CRITICAL": "btn btn-critical",
+                    "ATTACK": "btn btn-attack"
+                }
+                for i in result_set:
+                    data_set = {
+                        "id": i[0],
+                        "type": i[1],
+                        "ip": i[2],
+                        "severity": [i[3], colors[i[3]]],
+                        "log": i[4],
+                        "timestamp": datetime_patern(dt=i[5]),
+                        "username": i[6]
                     }
-                    for i in result_set:
-                        data_set = {
-                            "id": i[0],
-                            "type": i[1],
-                            "ip": i[2],
-                            "severity": [i[3], colors[i[3]]],
-                            "log": i[4],
-                            "timestamp": datetime_patern(dt=i[5]),
-                            "username": i[6]
-                        }
-                        html.append(data_set)
-                    return response_create(json.dumps({"STATUS": "OK", "content": html, "q": "Results found."}))
-                else:
-                    log = "Unsuccessful search by \"{0} {1}\" .Search criteria: \"{2}\" .".format(f_name, l_name, "; ".join(["{0}:{1}".format(k, ", ".join(v)) for k, v in args.iteritems() if "none" not in v]))
-                    write_log_to_mysql(event_type, ip, "ERROR", log, self.system_username)
-                    return response_create(json.dumps({"STATUS": "error", "ERROR": "No results found for your search criteria."}))
-            return response_create(json.dumps({"STATUS": "error", "ERROR": "No results found for your search criteria."}))
+                    html.append(data_set)
+                return response_create(json.dumps({"STATUS": "OK", "content": html, "q": "Results found."}))
+            else:
+                log = "Unsuccessful search by \"{0} {1}\" .Search criteria: \"{2}\" .".format(f_name, l_name, "; ".join(["{0}:{1}".format(k, ", ".join(v)) for k, v in args.iteritems() if "none" not in v]))
+                write_log_to_mysql(event_type, ip, "ERROR", log, self.system_username)
+                return response_create(json.dumps({"STATUS": "error", "ERROR": "No results found for your search criteria."}))
         except Exception as e:
             return response_create(json.dumps({"STATUS": "error", "ERROR": "Query could not be completed.Error: {0}".format(e)}))
+
+    @staticmethod
+    def get_survey(survey_id):
+        if get_surveys_table(where="ID='" + survey_id + "'", count=True) == 0:
+            abort(404)
+        return get_surveys_table(where="ID='" + survey_id + "'")[0]
