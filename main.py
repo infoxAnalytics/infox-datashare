@@ -85,7 +85,7 @@ def index():
         'index.html',
         page_title="Infox Data Share",
         pages=permitted_pages(session.get("ROLE").split(",")),
-        application=permitted_application(session.get("ROLE").split(","))
+        application=permitted_application(session.get("ROLE").split(","), session.get("PROJECT").split(","))
     )
 
 
@@ -98,14 +98,13 @@ def survey():
         'survey.html',
         page_title="Infox Data Share",
         pages=permitted_pages(session.get("ROLE").split(",")),
-        application=permitted_sub_application(session.get("ROLE").split(","), "Survey")
+        application=permitted_sub_application(session.get("ROLE").split(","), "Survey", session.get("PROJECT").split(","))
     )
 
 
 @app.route("/do-survey")
 @login_required
 @requires_roles("User", "Admin")
-@before_process
 def do_survey():
     survey_id = request.args.get("name")
     session["survey_id"] = survey_id

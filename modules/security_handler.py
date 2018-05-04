@@ -94,19 +94,25 @@ def permitted_pages(user_roles):
     return get_pages_table(where=where_clause, column="NAME,LOCATION")
 
 
-def permitted_application(user_roles):
+def permitted_application(user_roles, user_projects):
     where_clause = "(ROLE LIKE '%All%'"
     for r in user_roles:
         where_clause += " OR ROLE LIKE '%{0}%'".format(r)
-    where_clause += ") AND PAGE_TYPE='Property'"
+    where_clause += ") AND PAGE_TYPE='Property' AND (PROJECT LIKE '%All%'"
+    for p in user_projects:
+        where_clause += " OR PROJECT LIKE '%{0}%'".format(p)
+    where_clause += ")"
     return get_pages_table(where=where_clause, column="NAME,LOCATION,IMAGE")
 
 
-def permitted_sub_application(user_roles, property_name):
+def permitted_sub_application(user_roles, property_name, user_projects):
     where_clause = "(ROLE LIKE '%All%'"
     for r in user_roles:
         where_clause += " OR ROLE LIKE '%{0}%'".format(r)
-    where_clause += ") AND PAGE_TYPE='SubProperty' AND PARENT_PAGE='{0}'".format(property_name)
+    where_clause += ") AND PAGE_TYPE='SubProperty' AND PARENT_PAGE='{0}' AND (PROJECT LIKE '%All%'".format(property_name)
+    for p in user_projects:
+        where_clause += " OR PROJECT LIKE '%{0}%'".format(p)
+    where_clause += ")"
     return get_pages_table(where=where_clause, column="NAME,LOCATION,IMAGE,RELATIONAL_ID")
 
 

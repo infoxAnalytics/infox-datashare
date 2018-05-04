@@ -25,9 +25,9 @@ class Protector(Db):
     def sign_in(self, email, password, ip):
         event_type = "LOGIN"
         password = calculate_hash(password, method="sha256")
-        session_environ = ["UID", "FIRSTNAME", "LASTNAME", "EMAIL", "MAJORITY", "COUNTRY", "STATUS", "ROLE", "CITY", "HOSPITAL"]
+        session_environ = ["UID", "FIRSTNAME", "LASTNAME", "EMAIL", "MAJORITY", "COUNTRY", "STATUS", "ROLE", "CITY", "HOSPITAL","PROJECT"]
         try:
-            user_data = get_users_table(where="EMAIL='" + email + "' AND PASSWORD='" + password + "'", column="ID,F_NAME,L_NAME,EMAIL,MAJORITY,COUNTRY,STATUS,ROLE,CITY,HOSPITAL")[0]
+            user_data = get_users_table(where="EMAIL='" + email + "' AND PASSWORD='" + password + "'", column="ID,F_NAME,L_NAME,EMAIL,MAJORITY,COUNTRY,STATUS,ROLE,CITY,HOSPITAL,PROJECT")[0]
         except IndexError:
             user_data = tuple()
         if len(user_data) > 0:
