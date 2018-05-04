@@ -4,7 +4,7 @@
 
 from db_handler import Db
 from tools import write_log_to_mysql, get_username, response_create, datetime_patern
-from raw_data_handler import get_system_logs_table, get_surveys_table
+from raw_data_handler import get_system_logs_table, get_surveys_table, get_users_table, get_projects_table
 from flask import abort, session
 
 import json
@@ -15,6 +15,28 @@ class Processor(Db):
         super(Processor, self).__init__(couchbase_sup=False, mongo_sup=True)
         self.system_username = "Main Handler"
         self.mongodb = self.mongodb_client.datashare
+
+    @staticmethod
+    def get_survey(survey_id):
+        if get_surveys_table(where="ID='" + survey_id + "'", count=True) == 0:
+            abort(404)
+        return get_surveys_table(where="ID='" + survey_id + "'")[0]
+
+    @staticmethod
+    def get_pending_account_count():
+        return get_users_table(where="STATUS='Pending'", count=True)
+
+    @staticmethod
+    def get_pending_account_list():
+        return get_users_table(where="STATUS='Pending'", column="F_NAME,L_NAME,EMAIL,MAJORITY,COUNTRY,CITY,HOSPITAL,ROLE,ID")
+
+    @staticmethod
+    def get_projects():
+        return get_projects_table(where="STATUS='Active'", column="ID,NAME,EXPLANATION")
+
+    @staticmethod
+    def get_project_name(project_id):
+        return get_projects_table(where="ID='" + project_id + "'", column="NAME")[0][0]
 
     def save_survey_results(self, args, person, ip):
         event_type = "SAVE_SURVEY"
@@ -123,8 +145,18 @@ class Processor(Db):
         except Exception as e:
             return response_create(json.dumps({"STATUS": "error", "ERROR": "Query could not be completed.Error: {0}".format(e)}))
 
-    @staticmethod
-    def get_survey(survey_id):
-        if get_surveys_table(where="ID='" + survey_id + "'", count=True) == 0:
-            abort(404)
-        return get_surveys_table(where="ID='" + survey_id + "'")[0]
+    def change_user_status(self, args, person, ip):
+        event_type = "USER_STATUS_CHANGE"
+        f_name, l_name = get_username(person)
+        try:
+            if args["USER_STATUS"] == "enable":
+                if args["PROJECT"][0] == "none":
+                    return response_create(json.dumps({"STATUS": "error", "ERROR": "Project is not none for this process."}))
+                self.write_mysql("UPDATE users SET STATUS='Enabled', PROJECT='{0}' WHERE ID='{1}'".format(",".join([self.get_project_name(i) for i in args["PROJECT"] if i != "none"]), args["USER_ID"]))
+            log = "User status changed by \"{0} {1}\".Status: {2}, Projects: {3}.".format(f_name, l_name, args["USER_STATUS"], ",".join(args["PROJECT"]))
+            write_log_to_mysql(event_type, ip, "INFO", log, self.system_username)
+            self.mysql_commit()
+            return response_create(json.dumps({"STATUS": "OK", "MESSAGE": "Status changed."}))
+        except Exception as e:
+            self.mysql_rollback()
+            return response_create(json.dumps({"STATUS": "error", "ERROR": "Query could not be completed.Error: {0}".format(e)}))

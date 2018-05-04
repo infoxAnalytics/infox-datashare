@@ -59,3 +59,12 @@ def get_surveys_table(where=None, column="*", count=False):
     if not count:
         return db_object.readt_mysql(q)
     return db_object.count_mysql(q)
+
+
+def get_projects_table(where=None, column="*", count=False):
+    q = "SELECT {0} FROM projects".format(column)
+    if where is not None:
+        q = "SELECT {0} FROM projects WHERE {1}".format(column, where)
+    if not count:
+        return db_object.readt_mysql(q)
+    return db_object.count_mysql(q)

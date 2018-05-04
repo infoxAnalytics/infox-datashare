@@ -159,6 +159,22 @@ def system_log():
     )
 
 
+@app.route("/management")
+@login_required
+@requires_roles("Admin")
+@before_process
+def management():
+    return render_template(
+        'management.html',
+        page_title="Infox Data Share",
+        pages=permitted_pages(session.get("ROLE").split(",")),
+        pending_count=main_handler.get_pending_account_count(),
+        pending_list=main_handler.get_pending_account_list(),
+        get_country_name=get_country_name,
+        projects=main_handler.get_projects()
+    )
+
+
 @app.route("/verifier", methods=["POST"])
 def verifier():
     process = mdb.escape_string(request.form["PROCESS"])
@@ -218,6 +234,16 @@ def admin_components():
         if not control[0]:
             return control[1]
         return main_handler.search_log(args=args, person=person, ip=ip)
+    elif process == "ChangeUserStatus":
+        args = {
+            "USER_ID": mdb.escape_string(request.form["USER_ID"]),
+            "PROJECT": mdb.escape_string(request.form["PROJECT"]).split(","),
+            "USER_STATUS": mdb.escape_string(request.form["USER_STATUS"])
+        }
+        control = arguman_controller(args)
+        if not control[0]:
+            return control[1]
+        return main_handler.change_user_status(args=args, person=person, ip=ip)
 
 
 if __name__ == '__main__':

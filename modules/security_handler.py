@@ -4,7 +4,7 @@
 
 from tools import response_create, get_user_base_folder
 from main_handler import Processor
-from raw_data_handler import get_users_table, get_country_table, get_pages_table, get_system_logs_table
+from raw_data_handler import get_users_table, get_country_table, get_pages_table, get_system_logs_table, get_projects_table
 from flask import url_for, redirect
 
 import json
@@ -35,6 +35,8 @@ def arguman_controller(args, access=False, log_patern=False):
     etype = re.compile("^none|{0}$".format("|".join([i[0] for i in get_system_logs_table(column="DISTINCT(EVENT_TYPE)")])))
     users = re.compile("^none|{0}$".format("|".join([i[0] for i in get_system_logs_table(column="DISTINCT(USERNAME)")])))
     country_codes = re.compile("^{0}$".format("|".join([i[0] for i in get_country_table(column="CODE")])))
+    user_id = re.compile("^{0}$".format("|".join([i[0] for i in get_users_table(column="ID")])))
+    projects = re.compile("^none|{0}$".format("|".join([i[0] for i in get_projects_table(column="ID")])))
     patern = {
         "EMAIL": [mail, "Mail address syntax error."],
         "FIRSTNAME": [names, "Firstname syntax error."],
@@ -44,7 +46,10 @@ def arguman_controller(args, access=False, log_patern=False):
         "MAJORITY": [names, "Majority syntax error."],
         "COUNTRY": [country_codes, "Invalid country code."],
         "CITY": [names, "Invalid city name."],
-        "HOSPITAL": [hospital, "Invalid hospital name."]
+        "HOSPITAL": [hospital, "Invalid hospital name."],
+        "USER_ID": [user_id, "Invalid user id."],
+        "PROJECT": [projects, "Invalid project."],
+        "USER_STATUS": [re.compile("(enable|delete)"), "Invalid user status."]
     }
     for_log_patern = {
         "ALL_LOG": [re.compile("(True|False)"), "Invalid bool value error."],
