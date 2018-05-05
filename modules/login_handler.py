@@ -3,7 +3,7 @@
 
 from db_handler import Db, calculate_hash
 from tools import response_create, write_log_to_mysql, get_username
-from flask import session, url_for, redirect
+from flask import session, url_for, redirect, current_app
 from raw_data_handler import get_users_table
 
 import json
@@ -85,7 +85,7 @@ class Protector(Db):
                 self.mysql_rollback()
                 return response_create(json.dumps({"STATUS": "error", "ERROR": "Query could not be completed.Error: {0}".format(e)}))
 
-    def register(self, args, ip, user_base):
+    def register(self, args, ip):
         event_type = "REGISTER"
         if get_users_table(where="IP='" + ip + "'", count=True) > 0:
             return response_create(json.dumps({"STATUS": "error", "ERROR": "Your IP address not permitted."}))
@@ -93,7 +93,7 @@ class Protector(Db):
             return response_create(json.dumps({"STATUS": "error", "ERROR": "Your passwords does not match."}))
         try:
             uid = str(uuid.uuid4()).split("-")[-1]
-            user_base_folder = os.path.join(user_base, uuid)
+            user_base_folder = os.path.join(current_app.config.get("USER_BASE"), uuid)
             self.write_mysql("INSERT INTO users(ID,F_NAME,L_NAME,EMAIL,MAJORITY,COUNTRY,PASSWORD,CITY,HOSPITAL,IP) VALUES ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}')".format(
                 uid, args["FIRSTNAME"], args["LASTNAME"], args["EMAIL"], args["MAJORITY"], args["COUNTRY"], calculate_hash(args["PASSWORD"], "sha256"), args["CITY"], args["HOSPITAL"], ip
             ))
