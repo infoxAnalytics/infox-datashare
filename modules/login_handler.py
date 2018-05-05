@@ -27,11 +27,11 @@ class Protector(Db):
         password = calculate_hash(password, method="sha256")
         session_environ = ["UID", "FIRSTNAME", "LASTNAME", "EMAIL", "MAJORITY", "COUNTRY", "STATUS", "ROLE", "CITY", "HOSPITAL", "PROJECT"]
         try:
-            user_data = get_users_table(where="EMAIL='" + email + "' AND PASSWORD='" + password + "' AND STATUS='Enabled'", column="ID,F_NAME,L_NAME,EMAIL,MAJORITY,COUNTRY,STATUS,ROLE,CITY,HOSPITAL,PROJECT")[0]
+            user_data = get_users_table(where="EMAIL='" + email + "' AND PASSWORD='" + password + "'", column="ID,F_NAME,L_NAME,EMAIL,MAJORITY,COUNTRY,STATUS,ROLE,CITY,HOSPITAL,PROJECT")[0]
         except IndexError:
             user_data = tuple()
         if len(user_data) > 0:
-            if user_data[-1] in ["Disabled"]:
+            if user_data[-5] in ["Disabled"]:
                 return response_create(json.dumps({"STATUS": "error", "ERROR": "Your account is disabled.Please contact Middleware Team."}))
             session["logged-in"] = True
             for i in range(len(session_environ)):
