@@ -35,7 +35,8 @@ def login_required(f):
             return redirect(url_for('login', next=request.url))
         elif is_disabled_account(session.get("UID")):
             return login_handler.kickout()
-        return f(*args, **kwargs)
+        else:
+            return redirect(url_for('main'))
     return decorated_function
 
 
