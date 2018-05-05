@@ -31,7 +31,7 @@ class Protector(Db):
         except IndexError:
             user_data = tuple()
         if len(user_data) > 0:
-            if user_data[-5] in ["Disabled"]:
+            if user_data[-5] in ["Pending", "Disabled"]:
                 return response_create(json.dumps({"STATUS": "error", "ERROR": "Your account is disabled.Please contact Middleware Team."}))
             session["logged-in"] = True
             for i in range(len(session_environ)):
