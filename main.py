@@ -194,7 +194,7 @@ def verifier():
         control = arguman_controller(args)
         if not control[0]:
             return control[1]
-        return login_handler.register(args=args, ip=ip)
+        return login_handler.register(args=args, ip=ip, app=app)
     elif process == "Login":
         email = mdb.escape_string(request.form["EMAIL"])
         password = mdb.escape_string(request.form["PASSWORD"])
