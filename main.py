@@ -35,8 +35,16 @@ def login_required(f):
             return redirect(url_for('login', next=request.url))
         elif is_disabled_account(session.get("UID")):
             return login_handler.kickout()
-        else:
-            return redirect(url_for('main'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+def session_check(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if session.get("logged-in") is not None or session:
+            return redirect(url_for('index'))
+        return f(*args, **kwargs)
     return decorated_function
 
 
@@ -61,11 +69,13 @@ def before_process(f):
 
 
 @app.route("/register")
+@session_check
 def register():
     return render_template('register.html', page_title="Infox Data Share")
 
 
 @app.route("/")
+@session_check
 def login():
     return render_template('login.html', page_title="Infox Data Share")
 
