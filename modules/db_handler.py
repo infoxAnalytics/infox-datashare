@@ -4,12 +4,12 @@
 
 from couchbase.bucket import Bucket
 from pymongo import MongoClient
+from config import election
 
-import os
-import ConfigParser
 import couchbase
 import MySQLdb as mdb
 import hashlib
+import os
 
 
 def calculate_hash(arg, method="sha256"):
@@ -23,20 +23,19 @@ def calculate_hash(arg, method="sha256"):
 
 class Db(object):
     def __init__(self, couchbase_sup=False, mongo_sup=False):
-        self.config = ConfigParser.ConfigParser()
-        self.config.read(os.path.join(os.getcwd(), "modules/config.cfg"))
+        self.cfg = election[os.getenv("TARGET_PLATFORM")]
         self.vt = None
         self.mysql = None
         self.connect_mysql()
         if couchbase_sup:
-            cb_config = self.config.get("dbs", "couchbase_param").split(",")
+            cb_config = self.cfg.COUCHBASE_PARAM
             self.cb = Bucket("couchbase://{0}/{1}".format(cb_config[0], cb_config[1]), username=cb_config[2], password=cb_config[3])
         if mongo_sup:
-            mongo_cfg = self.config.get("dbs", "mongo_param").split(",")
+            mongo_cfg = self.cfg.MONGO_PARAM
             self.mongodb_client = MongoClient(host=mongo_cfg[0], port=int(mongo_cfg[1]))
 
     def connect_mysql(self):
-        mysql_config = self.config.get("dbs", "mysql_param").split(",")
+        mysql_config = self.cfg.MYSQL_PARAM
         self.mysql = mdb.connect(host=mysql_config[0], user=mysql_config[1], passwd=mysql_config[2], db=mysql_config[3], port=int(mysql_config[4]))
         self.mysql.autocommit(False)
         self.vt = self.mysql.cursor()

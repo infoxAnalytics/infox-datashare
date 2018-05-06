@@ -9,12 +9,16 @@ from modules.security_handler import is_disabled_account, arguman_controller, pe
 from modules.login_handler import Protector
 from modules.tools import get_event_users, get_country_name, get_profile_pic
 from datetime import timedelta
+from modules.config import election
 
 import MySQLdb as mdb
+import sys
+import os
 
 app = Flask(__name__)
 app.secret_key = "19d40f906d1f67cf66ccce9d2ea575604ad5f6a4497c5b3863c15eb7db5be779"
-app.config["USER_BASE"] = "/home/ghost/Desktop/Workshop/AnalyticsProject/infox-datashare/static/user_base"
+app.config["DEBUG"] = election[os.getenv("TARGET_PLATFORM")].DEBUG
+app.config["USER_BASE"] = election[os.getenv("TARGET_PLATFORM")].USER_BASE
 
 main_handler = Processor()
 login_handler = Protector()
@@ -36,6 +40,7 @@ def login_required(f):
         elif is_disabled_account(session.get("UID")):
             return login_handler.kickout()
         return f(*args, **kwargs)
+
     return decorated_function
 
 
@@ -45,6 +50,7 @@ def session_check(f):
         if session.get("logged-in") is not None or session:
             return redirect(url_for('index'))
         return f(*args, **kwargs)
+
     return decorated_function
 
 
@@ -56,7 +62,9 @@ def requires_roles(*roles):
                 if r in roles:
                     return f(*args, **kwargs)
             abort(401, "You don't have permission to do this action!!!")
+
         return wrapped
+
     return wrapper
 
 
@@ -65,6 +73,7 @@ def before_process(f):
     def decorated_function(*args, **kwargs):
         session.pop("survey_id", None)
         return f(*args, **kwargs)
+
     return decorated_function
 
 
@@ -258,4 +267,8 @@ def admin_components():
 
 
 if __name__ == '__main__':
-    app.run(port=5000, debug=True)
+    try:
+        os.environ["TARGET_PLATFORM"] = sys.argv[1]
+    except IndexError:
+        os.environ["TARGET_PLATFORM"] = "dev"
+    app.run(port=5000)
