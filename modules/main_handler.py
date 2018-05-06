@@ -31,6 +31,10 @@ class Processor(Db):
         return get_users_table(where="STATUS='Pending'", column="F_NAME,L_NAME,EMAIL,MAJORITY,COUNTRY,CITY,HOSPITAL,ROLE,ID")
 
     @staticmethod
+    def get_all_account():
+        return get_users_table(where="STATUS!='Pending'", column="F_NAME,L_NAME,EMAIL,MAJORITY,COUNTRY,CITY,HOSPITAL,ROLE,ID,STATUS,PROJECT")
+
+    @staticmethod
     def get_projects():
         return get_projects_table(where="STATUS='Active'", column="ID,NAME,EXPLANATION")
 

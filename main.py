@@ -191,7 +191,8 @@ def management():
         pending_count=main_handler.get_pending_account_count(),
         pending_list=main_handler.get_pending_account_list(),
         get_country_name=get_country_name,
-        projects=main_handler.get_projects()
+        projects=main_handler.get_projects(),
+        all_users=main_handler.get_all_account()
     )
 
 

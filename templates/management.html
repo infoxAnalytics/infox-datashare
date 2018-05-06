@@ -128,8 +128,10 @@
                                     {% endfor %}
                                   </select>
                                 </td>
-                                <td><button onclick="pendingAccountManager('enable', '{{ us[8] }}')" class="btn btn-info" type="button">Enable</button></td>
-                                <td><button onclick="pendingAccountManager('delete', '{{ us[8] }}')" class="btn btn-danger" type="button">Delete</button></td>
+                                <td>
+                                  <button onclick="pendingAccountManager('enable', '{{ us[8] }}')" class="btn btn-info" type="button">Enable</button>
+                                  <button onclick="pendingAccountManager('delete', '{{ us[8] }}')" class="btn btn-danger" type="button">Delete</button>
+                                </td>
                               </tr>
                             {% endfor %}
                           </tbody>
@@ -137,6 +139,61 @@
                       </div>
                     </div>
                   {% endif %}
+                  <div class="row">
+                      <div class="col-md-12">
+                        <h3 style="color: #0a928f">Users</h3>
+                        <table class="table table-hover" id="all_users">
+                          <thead>
+                            <tr>
+                              <th>Name</th>
+                              <th>Surname</th>
+                              <th>E-Mail</th>
+                              <th>Majority</th>
+                              <th>Country</th>
+                              <th>City</th>
+                              <th>Hospital</th>
+                              <th>Role</th>
+                              <th>Project</th>
+                              <th>Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {% for us in all_users %}
+                              {% if us[9] == "Deleted" %}
+                              <tr class="deleted_account_tr">
+                              {% else %}
+                              <tr>
+                              {% endif %}
+                                <td class="users_td">{{ us[0] }}</td>
+                                <td class="users_td">{{ us[1] }}</td>
+                                <td class="users_td">{{ us[2] }}</td>
+                                <td class="users_td">{{ us[3] }}</td>
+                                <td class="users_td">{{ get_country_name(us[4]) }}</td>
+                                <td class="users_td">{{ us[5] }}</td>
+                                <td class="users_td">{{ us[6] }}</td>
+                                <td class="users_td"><label style="color: #920a82;">{{ us[7] }}</label></td>
+                                <td class="users_td">
+                                  {% for pr in us[10].split(",") %}
+                                    <button class="btn btn-default" type="button">{{ pr }}</button>
+                                  {% endfor %}
+                                </td>
+                                <td>
+                                  {% if us[9] == "Enabled" %}
+                                    <button class="btn btn-danger" type="button">Disable</button>
+                                    <button class="btn btn-warning" type="button">Edit</button>
+                                  {% elif us[9] == "Disabled" %}
+                                    <button class="btn btn-info" type="button">Enable</button>
+                                    <button class="btn btn-warning" type="button">Edit</button>
+                                  {% else %}
+                                    <button class="btn btn-info" type="button" style="width: 100%;">Activate</button>
+                                  {% endif %}
+                                </td>
+                              </tr>
+                            {% endfor %}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
                 </div>
                 <div role="tabpanel" class="tab-pane" id="surveys">...</div>
                 <div role="tabpanel" class="tab-pane" id="analytics">...</div>
