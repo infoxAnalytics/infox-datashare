@@ -171,10 +171,10 @@
                                 <td class="users_td">{{ get_country_name(us[4]) }}</td>
                                 <td class="users_td">{{ us[5] }}</td>
                                 <td class="users_td">{{ us[6] }}</td>
-                                <td class="users_td"><label style="color: #920a82;">{{ us[7] }}</label></td>
-                                <td class="users_td">
+                                <td><label style="color: #920a82;" class="users_td">{{ us[7] }}</label></td>
+                                <td>
                                   {% for pr in us[10].split(",") %}
-                                    <button class="btn btn-default" type="button">{{ pr }}</button>
+                                    <button class="btn btn-default users_td" type="button">{{ pr }}</button>
                                   {% endfor %}
                                 </td>
                                 <td>

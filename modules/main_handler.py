@@ -32,7 +32,7 @@ class Processor(Db):
 
     @staticmethod
     def get_all_account():
-        return get_users_table(where="STATUS!='Pending'", column="F_NAME,L_NAME,EMAIL,MAJORITY,COUNTRY,CITY,HOSPITAL,ROLE,ID,STATUS,PROJECT")
+        return get_users_table(where="STATUS!='Pending' ORDER BY STATUS DESC", column="F_NAME,L_NAME,EMAIL,MAJORITY,COUNTRY,CITY,HOSPITAL,ROLE,ID,STATUS,PROJECT")
 
     @staticmethod
     def get_projects():
@@ -40,6 +40,8 @@ class Processor(Db):
 
     @staticmethod
     def get_project_name(project_id):
+        if project_id == "none":
+            return "None"
         return get_projects_table(where="ID='" + project_id + "'", column="NAME")[0][0]
 
     def save_survey_results(self, args, person, ip):
@@ -149,18 +151,25 @@ class Processor(Db):
         except Exception as e:
             return response_create(json.dumps({"STATUS": "error", "ERROR": "Query could not be completed.Error: {0}".format(e)}))
 
-    def change_user_status(self, args, person, ip):
+    def decide_user_first_status(self, args, person, ip):
         event_type = "USER_STATUS_CHANGE"
         f_name, l_name = get_username(person)
+        t_name, t_surname = get_username(args["USER_ID"])
         try:
             if args["USER_STATUS"] == "enable":
                 if args["PROJECT"][0] == "none":
                     return response_create(json.dumps({"STATUS": "error", "ERROR": "Project is not none for this process."}))
                 self.write_mysql("UPDATE users SET STATUS='Enabled', PROJECT='{0}' WHERE ID='{1}'".format(",".join([self.get_project_name(i) for i in args["PROJECT"] if i != "none"]), args["USER_ID"]))
-            log = "User status changed by \"{0} {1}\".Status: {2}, Projects: {3}.".format(f_name, l_name, args["USER_STATUS"].capitalize(), ",".join([self.get_project_name(i) for i in args["PROJECT"] if i != "none"]))
+            elif args["USER_STATUS"] == "delete":
+                self.write_mysql("DELETE FROM users WHERE ID='{0}'".format(args["USER_ID"]))
+            log = "User status changed by \"{0} {1}\".Status: {2}, Projects: {3}, Name: {4}, Surname: {5}.".format(f_name, l_name, args["USER_STATUS"].capitalize(), ",".join([self.get_project_name(i) for i in args["PROJECT"]]), t_name, t_surname)
             write_log_to_mysql(event_type, ip, "INFO", log, self.system_username)
             self.mysql_commit()
             return response_create(json.dumps({"STATUS": "OK", "MESSAGE": "Status changed."}))
         except Exception as e:
             self.mysql_rollback()
             return response_create(json.dumps({"STATUS": "error", "ERROR": "Query could not be completed.Error: {0}".format(e)}))
+
+    def change_user_status(self, args, person, ip):
+        event_type = "USER_STATUS_CHANGE"
+        f_name, l_name = get_username(person)

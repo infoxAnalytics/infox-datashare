@@ -12,7 +12,6 @@ from datetime import timedelta
 from modules.config import election
 
 import MySQLdb as mdb
-import sys
 import os
 
 app = Flask(__name__)
@@ -36,7 +35,7 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if session.get("logged-in") is None or not session:
-            return redirect(url_for('login', next=request.url))
+            return redirect(url_for('login', next=request.path))
         elif is_disabled_account(session.get("UID")):
             return login_handler.kickout()
         return f(*args, **kwargs)
@@ -264,12 +263,8 @@ def admin_components():
         control = arguman_controller(args)
         if not control[0]:
             return control[1]
-        return main_handler.change_user_status(args=args, person=person, ip=ip)
+        return main_handler.decide_user_first_status(args=args, person=person, ip=ip)
 
 
 if __name__ == '__main__':
-    try:
-        os.environ["TARGET_PLATFORM"] = sys.argv[1]
-    except IndexError:
-        os.environ["TARGET_PLATFORM"] = "dev"
     app.run(port=5000)

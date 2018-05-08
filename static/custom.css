@@ -95,8 +95,9 @@ span.tag a {
     width: 20rem;
 }
 
-.deleted_account_tr td.users_td {
+.deleted_account_tr .users_td {
     opacity: 0.4;
+    text-decoration: line-through
 }
 
 
