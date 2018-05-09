@@ -115,7 +115,33 @@ function pendingAccountManager(x,y) {
     }else{
         var projects = $("#"+y+"_project").val().join(',');
     }
-    var data = {"PROCESS":"ChangeUserStatus", "USER_ID":y, "USER_STATUS":x, "PROJECT":projects}
+    var data = {"PROCESS":"DecideFirstStatus", "USER_ID":y, "USER_STATUS":x, "PROJECT":projects}
+    $.ajax({
+      type: "POST",
+      url: "/admin-components",
+      data: data,
+      dataType: "json",
+      success: function(data) {
+        if ( data.STATUS == "OK" ) {
+            new PNotify({
+                title: 'User Status Changed.',
+                text: data.MESSAGE,
+                type: 'success'
+              });
+            $(location).attr('href', '/management');
+          } else {
+            new PNotify({
+                title: 'Oops !!! Something went wrong.',
+                text: data.ERROR,
+                type: 'error'
+              });
+          }
+      }
+    });
+}
+
+function userStatusChange(x,y) {
+    var data = {"PROCESS":"ChangeUserStatus", "USER_ID":x, "USER_STATUS":y}
     $.ajax({
       type: "POST",
       url: "/admin-components",

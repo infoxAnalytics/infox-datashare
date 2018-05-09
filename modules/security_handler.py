@@ -49,7 +49,7 @@ def arguman_controller(args, access=False, log_patern=False):
         "HOSPITAL": [hospital, "Invalid hospital name."],
         "USER_ID": [user_id, "Invalid user id."],
         "PROJECT": [projects, "Invalid project."],
-        "USER_STATUS": [re.compile("(enable|delete)"), "Invalid user status."]
+        "USER_STATUS": [re.compile("(enable|delete|disable|activate)"), "Invalid user status."]
     }
     for_log_patern = {
         "ALL_LOG": [re.compile("(True|False)"), "Invalid bool value error."],

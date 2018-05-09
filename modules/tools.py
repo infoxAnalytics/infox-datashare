@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
+from functools import wraps
 from db_handler import Db
 from flask import Response
 from raw_data_handler import get_users_table, get_system_logs_table, get_country_table, get_user_profile_table
@@ -11,8 +12,20 @@ import datetime
 import random
 import os
 import re
+import json
 
 db_object = Db()
+
+def catch_exception(f):
+    @wraps(f)
+    def decorated_function(self, *args, **kwargs):
+        try:
+            return f(self, *args, **kwargs)
+        except Exception as e:
+            db_object.mysql_rollback()
+            return response_create(json.dumps({"STATUS": "error", "ERROR": "Somethings went wrong.Error: {0}".format(e)}))
+
+    return decorated_function
 
 
 def calculate_banned_time(banned_time):

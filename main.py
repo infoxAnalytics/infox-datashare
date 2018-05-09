@@ -254,7 +254,7 @@ def admin_components():
         if not control[0]:
             return control[1]
         return main_handler.search_log(args=args, person=person, ip=ip)
-    elif process == "ChangeUserStatus":
+    elif process == "DecideFirstStatus":
         args = {
             "USER_ID": mdb.escape_string(request.form["USER_ID"]),
             "PROJECT": mdb.escape_string(request.form["PROJECT"]).split(","),
@@ -264,6 +264,15 @@ def admin_components():
         if not control[0]:
             return control[1]
         return main_handler.decide_user_first_status(args=args, person=person, ip=ip)
+    elif process == "ChangeUserStatus":
+        args = {
+            "USER_ID": mdb.escape_string(request.form["USER_ID"]),
+            "USER_STATUS": mdb.escape_string(request.form["USER_STATUS"])
+        }
+        control = arguman_controller(args)
+        if not control[0]:
+            return control[1]
+        return main_handler.change_user_status(args=args, person=person, ip=ip)
 
 
 if __name__ == '__main__':

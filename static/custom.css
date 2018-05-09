@@ -101,3 +101,7 @@ span.tag a {
 }
 
 
+#all_users_paginate > ul, #all_users_filter > label {
+    float: right !important;
+}
+

@@ -16,7 +16,7 @@
     <link href="/static/pnotify.custom.min.css" rel="stylesheet">
     <link href="/static/custom.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.10.13/datatables.min.css"/>
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/>
 
     <link href="/static/pnotify.custom.min.css" rel="stylesheet">
 
@@ -95,7 +95,7 @@
                     <div class="row">
                       <div class="col-md-12">
                         <h3 style="color: #0a928f">Pending Activating</h3>
-                        <table class="table table-hover" id="pending_accounts_table">
+                        <table class="table table-striped table-bordered" style="width: 100%;" id="pending_accounts_table">
                           <thead>
                             <tr>
                               <th>Name</th>
@@ -142,7 +142,7 @@
                   <div class="row">
                       <div class="col-md-12">
                         <h3 style="color: #0a928f">Users</h3>
-                        <table class="table table-hover" id="all_users">
+                        <table class="table table-striped table-bordered" style="width: 100%;" id="all_users">
                           <thead>
                             <tr>
                               <th>Name</th>
@@ -179,13 +179,13 @@
                                 </td>
                                 <td>
                                   {% if us[9] == "Enabled" %}
-                                    <button class="btn btn-danger" type="button">Disable</button>
+                                    <button onclick="userStatusChange('{{ us[8] }}', 'disable')" class="btn btn-danger" type="button">Disable</button>
                                     <button class="btn btn-warning" type="button">Edit</button>
                                   {% elif us[9] == "Disabled" %}
-                                    <button class="btn btn-info" type="button">Enable</button>
+                                    <button onclick="userStatusChange('{{ us[8] }}', 'enable')" class="btn btn-info" type="button">Enable</button>
                                     <button class="btn btn-warning" type="button">Edit</button>
                                   {% else %}
-                                    <button class="btn btn-info" type="button" style="width: 100%;">Activate</button>
+                                    <button onclick="userStatusChange('{{ us[8] }}', 'activate')" class="btn btn-info" type="button" style="width: 100%;">Activate</button>
                                   {% endif %}
                                 </td>
                               </tr>
@@ -212,10 +212,17 @@
     <script src="/static/dist/js/bootstrap.min.js"></script>
     <script src="/static/pnotify.custom.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/js/bootstrap-select.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.13/datatables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap.min.js"></script>
     <script src="/static/main_js/uam.js"></script>
     <script src="/static/pnotify.custom.min.js"></script>
     <script>
+
+        $(document).ready(function() {
+            $('.table').DataTable({
+              "aaSorting": []
+            });
+        });
 
         $(document).on({
             ajaxStart: function() { $('#loading').css("display","block"); },
