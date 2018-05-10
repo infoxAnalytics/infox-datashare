@@ -157,6 +157,7 @@ class Processor(Db):
             self.write_mysql("UPDATE users SET STATUS='Enabled', PROJECT='{0}' WHERE ID='{1}'".format(",".join([self.get_project_name(i) for i in args["PROJECT"] if i != "none"]), args["USER_ID"]))
         elif args["USER_STATUS"] == "delete":
             self.write_mysql("DELETE FROM users WHERE ID='{0}'".format(args["USER_ID"]))
+            self.write_mysql("DELETE FROM user_profile WHERE ID='{0}'".format(args["USER_ID"]))
         log = "User status changed by \"{0} {1}\".Status: {2}, Projects: {3}, Name: {4}, Surname: {5}.".format(f_name, l_name, args["USER_STATUS"].capitalize(), ",".join([self.get_project_name(i) for i in args["PROJECT"]]), t_name, t_surname)
         write_log_to_mysql(event_type, ip, "INFO", log, self.system_username)
         self.mysql_commit()
