@@ -3,16 +3,24 @@
 
 from functools import wraps
 
+import sys
+import os
+
+try:
+    os.environ["TARGET_PLATFORM"] = sys.argv[1]
+except IndexError:
+    os.environ["TARGET_PLATFORM"] = "dev"
+
 from flask import Flask, render_template, session, redirect, url_for, request, abort
 from modules.main_handler import Processor
 from modules.security_handler import is_disabled_account, arguman_controller, permitted_pages, permitted_application, uploaded_file_security, permitted_sub_application
 from modules.login_handler import Protector
-from modules.tools import get_event_users, get_country_name, get_profile_pic
+from modules.tools import get_event_users, get_country_name, get_profile_pic, get_username
 from datetime import timedelta
 from modules.config import election
+from modules.raw_data_handler import get_users_table
 
 import MySQLdb as mdb
-import os
 
 app = Flask(__name__)
 app.secret_key = "19d40f906d1f67cf66ccce9d2ea575604ad5f6a4497c5b3863c15eb7db5be779"
@@ -71,6 +79,9 @@ def before_process(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         session.pop("survey_id", None)
+        if request.path == "/modify-user":
+            if request.args.get("name") == session.get("UID"):
+                abort(401, "You don't have permission to do this action!!!")
         return f(*args, **kwargs)
 
     return decorated_function
@@ -162,6 +173,24 @@ def profile():
         pages=permitted_pages(session.get("ROLE").split(",")),
         get_country_name=get_country_name,
         get_profile_pic=get_profile_pic(session.get("UID"))
+    )
+
+
+@app.route("/modify-user")
+@login_required
+@requires_roles("User", "Admin")
+@before_process
+def modify_user():
+    user_id = request.args.get("name")
+    user_data = get_users_table(where="ID='" + user_id + "'", column="ID,EMAIL,MAJORITY,COUNTRY,CITY,HOSPITAL,ROLE,STATUS,PROJECT")[0]
+    return render_template(
+        'modify_user.html',
+        page_title="Infox Data Share",
+        pages=permitted_pages(session.get("ROLE").split(",")),
+        username=" ".join(get_username(user_id)),
+        user_data=user_data,
+        get_country_name=get_country_name,
+        get_profile_pic=get_profile_pic(user_id)
     )
 
 
