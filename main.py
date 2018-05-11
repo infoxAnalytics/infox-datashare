@@ -18,7 +18,7 @@ from modules.login_handler import Protector
 from modules.tools import get_event_users, get_country_name, get_profile_pic, get_username
 from datetime import timedelta
 from modules.config import election
-from modules.raw_data_handler import get_users_table
+from modules.raw_data_handler import get_users_table, get_projects_table, get_user_roles_table
 
 import MySQLdb as mdb
 
@@ -190,7 +190,9 @@ def modify_user():
         username=" ".join(get_username(user_id)),
         user_data=user_data,
         get_country_name=get_country_name,
-        get_profile_pic=get_profile_pic(user_id)
+        get_profile_pic=get_profile_pic(user_id),
+        projects=get_projects_table(where="STATUS='Active'"),
+        roles=get_user_roles_table()
     )
 
 
@@ -302,6 +304,20 @@ def admin_components():
         if not control[0]:
             return control[1]
         return main_handler.change_user_status(args=args, person=person, ip=ip)
+    elif process == "ChangeUserDetails":
+        args = {
+            "USER_ID": mdb.escape_string(request.form["USER_ID"]),
+            "MAJORITY": mdb.escape_string(request.form["MAJORITY"]).title(),
+            "COUNTRY_NAME": mdb.escape_string(request.form["COUNTRY_NAME"]).title(),
+            "HOSPITAL": mdb.escape_string(request.form["HOSPITAL"]).title(),
+            "CITY": mdb.escape_string(request.form["CITY"]).capitalize(),
+            "USER_ROLE": mdb.escape_string(request.form["ROLE"]).capitalize(),
+            "PROJECT": mdb.escape_string(request.form["PROJECTS"])
+        }
+        control = arguman_controller(args)
+        if not control[0]:
+            return control[1]
+        return main_handler.change_user_details(args=args, person=person, ip=ip)
 
 
 if __name__ == '__main__':

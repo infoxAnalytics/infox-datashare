@@ -49,7 +49,7 @@
         </div>
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="/main">Home</a></li>
+            <li><a href="/main">Home</a></li>
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Options <span class="caret"></span></a>
               <ul class="dropdown-menu">
@@ -96,7 +96,7 @@
           <label>E-Mail Address</label>
           <div class="input-group input-group-lg" style="margin-top: 5px;">
             <span class="input-group-addon"><i class="fa fa-envelope"></i></span>
-            <input name="email" type="email" class="form-control" value="{{ user_data[1] }}">
+            <input readonly="readonly" name="email" type="email" class="form-control" value="{{ user_data[1] }}">
           </div>
         </div>
 
@@ -139,10 +139,48 @@
         <div class="col-md-3">
           <label>Account Status</label>
           {% if user_data[7] == "Enabled" %}
-            <button style="width: 100%; margin-top: 4px;" class="btn btn-info btn-lg" type="button">Enabled</button>
+            <button onclick="userStatusChange('{{ user_data[0] }}', 'disable')" style="width: 100%; margin-top: 4px;" class="btn btn-info btn-lg" type="button">Enabled</button>
           {% else %}
-            <button style="width: 100%;" class="btn btn-danger btn-lg" type="button">Disabled</button>
+            <button onclick="userStatusChange('{{ user_data[0] }}', 'enable')" style="width: 100%; margin-top: 4px;" class="btn btn-danger btn-lg" type="button">Disabled</button>
           {% endif %}
+        </div>
+
+        <div class="col-md-3">
+          <label>Role</label>
+          <div class="input-group input-group-lg" style="margin-top: 5px;">
+            <select name="role" id="role" class="selectpicker" multiple data-actions-box="true" data-selected-text-format="count > 2">
+              {% for r in roles %}
+                {% if user_data[6] == r[0] %}
+                  <option value="{{ r[0] }}" data-subtext="{{ r[1] }}" selected="selected">{{ r[0] }}</option>
+                {% else %}
+                  <option value="{{ r[0] }}" data-subtext="{{ r[1] }}">{{ r[0] }}</option>
+                {% endif %}
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <label>Projects</label>
+          <div class="input-group input-group-lg" style="margin-top: 5px;">
+            <select name="projects" id="projects" class="selectpicker" multiple data-actions-box="true" data-selected-text-format="count > 2">
+              {% for p in projects %}
+                {% if user_data[8] == p[1] %}
+                  <option value="{{ p[0] }}" data-subtext="{{ p[2] }}" selected="selected">{{ p[1] }}</option>
+                {% else %}
+                  <option value="{{ p[0] }}" data-subtext="{{ p[2] }}">{{ p[1] }}</option>
+                {% endif %}
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top: 3%; margin-bottom: 5%;">
+        <div class="col-md-12">
+          <div class="text-center">
+              <button onclick="save_changes_user_details('{{ user_data[0] }}')" class="btn btn-lg btn-default">Save Changes</button>
+          </div>
         </div>
       </div>
 

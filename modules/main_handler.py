@@ -181,3 +181,24 @@ class Processor(Db):
         write_log_to_mysql(event_type, ip, "INFO", log, self.system_username)
         self.mysql_commit()
         return response_create(json.dumps({"STATUS": "OK", "MESSAGE": "Status changed."}))
+
+    @catch_exception
+    def change_user_details(self, args, person, ip):
+        event_type = "USER_STATUS_CHANGE"
+        f_name, l_name = get_username(person)
+        t_name, t_surname = get_username(args["USER_ID"])
+        changes = dict()
+        columns = ("MAJORITY", "COUNTRY", "HOSPITAL", "CITY", "ROLE", "PROJECT")
+        update_statement = "UPDATE users SET"
+        old_data = get_users_table(where="ID='" + args["USER_ID"] + "'", column=",".join(columns))[0]
+        for i in range(len(columns)):
+            if args[columns[i]] != old_data[i]:
+                changes[columns[i]] = (old_data[i], args[columns[i]])
+                update_statement += " " + columns[i] + "=" + args[columns[i]]
+        if len(changes) > 0:
+            update_statement += " WHERE ID='" + args["USER_ID"] + "'"
+            self.write_mysql(update_statement)
+            log = "User details changed by \"{0} {1}\".Name: {2}, Surname: {3}, Changes: {4}.".format(f_name, l_name, t_name, t_surname, changes)
+            write_log_to_mysql(event_type, ip, "INFO", log, self.system_username)
+            self.mysql_commit()
+        return response_create(json.dumps({"STATUS": "OK", "MESSAGE": "Status changed."}))

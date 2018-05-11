@@ -4,7 +4,7 @@
 
 from tools import response_create, get_user_base_folder
 from main_handler import Processor
-from raw_data_handler import get_users_table, get_country_table, get_pages_table, get_system_logs_table, get_projects_table
+from raw_data_handler import get_users_table, get_country_table, get_pages_table, get_system_logs_table, get_projects_table, get_user_roles_table
 from flask import url_for, redirect
 
 import json
@@ -35,7 +35,9 @@ def arguman_controller(args, access=False, log_patern=False):
     etype = re.compile("^none|{0}$".format("|".join([i[0] for i in get_system_logs_table(column="DISTINCT(EVENT_TYPE)")])))
     users = re.compile("^none|{0}$".format("|".join([i[0] for i in get_system_logs_table(column="DISTINCT(USERNAME)")])))
     country_codes = re.compile("^{0}$".format("|".join([i[0] for i in get_country_table(column="CODE")])))
+    country_names = re.compile("^{0}$".format("|".join([i[0] for i in get_country_table(column="NAME")])))
     user_id = re.compile("^{0}$".format("|".join([i[0] for i in get_users_table(column="ID")])))
+    user_role = re.compile("^{0}$".format("|".join([i[0] for i in get_user_roles_table(column="NAME")])))
     projects = re.compile("^none|{0}$".format("|".join([i[0] for i in get_projects_table(column="ID")])))
     patern = {
         "EMAIL": [mail, "Mail address syntax error."],
@@ -49,7 +51,9 @@ def arguman_controller(args, access=False, log_patern=False):
         "HOSPITAL": [hospital, "Invalid hospital name."],
         "USER_ID": [user_id, "Invalid user id."],
         "PROJECT": [projects, "Invalid project."],
-        "USER_STATUS": [re.compile("(enable|delete|disable|activate)"), "Invalid user status."]
+        "USER_STATUS": [re.compile("(enable|delete|disable|activate)"), "Invalid user status."],
+        "COUNTRY_NAME": [country_names, "Invalid country name."],
+        "USER_ROLE": [user_role, "Invalid role name."]
     }
     for_log_patern = {
         "ALL_LOG": [re.compile("(True|False)"), "Invalid bool value error."],

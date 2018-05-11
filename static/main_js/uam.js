@@ -141,27 +141,63 @@ function pendingAccountManager(x,y) {
 }
 
 function userStatusChange(x,y) {
-    var data = {"PROCESS":"ChangeUserStatus", "USER_ID":x, "USER_STATUS":y}
-    $.ajax({
-      type: "POST",
-      url: "/admin-components",
-      data: data,
-      dataType: "json",
-      success: function(data) {
-        if ( data.STATUS == "OK" ) {
-            new PNotify({
-                title: 'User Status Changed.',
-                text: data.MESSAGE,
-                type: 'success'
-              });
-            $(location).attr('href', '/management');
-          } else {
-            new PNotify({
-                title: 'Oops !!! Something went wrong.',
-                text: data.ERROR,
-                type: 'error'
-              });
+    if (confirm("User status will change.Are you sure?")) {
+        var data = {"PROCESS":"ChangeUserStatus", "USER_ID":x, "USER_STATUS":y}
+        $.ajax({
+          type: "POST",
+          url: "/admin-components",
+          data: data,
+          dataType: "json",
+          success: function(data) {
+            if ( data.STATUS == "OK" ) {
+                new PNotify({
+                    title: 'User Status Changed.',
+                    text: data.MESSAGE,
+                    type: 'success'
+                  });
+                $(location).attr('href', '/management');
+              } else {
+                new PNotify({
+                    title: 'Oops !!! Something went wrong.',
+                    text: data.ERROR,
+                    type: 'error'
+                  });
+              }
           }
-      }
-    });
+        });
+    }
+}
+
+function save_changes_user_details(x) {
+    if (confirm("User details will change.Are you sure?")) {
+        var majority = document.querySelector('[name="majority"]').value;
+        var country_code = document.querySelector('[name="country_code"]').value;
+        var city = document.querySelector('[name="city"]').value;
+        var hospital = document.querySelector('[name="hospital"]').value;
+        var role = $("#role").val().join(',');
+        var projects = $("#projects").val().join(',');
+        var data = {"PROCESS": "ChangeUserDetails", "USER_ID": x, "MAJORITY": majority, "COUNTRY_NAME": country_code, "CITY": city, "HOSPITAL": hospital, "ROLE": role, "PROJECTS": projects};
+        $.ajax({
+          type: "POST",
+          url: "/admin-components",
+          data: data,
+          dataType: "json",
+          success: function(data) {
+            if ( data.STATUS == "OK" ) {
+                new PNotify({
+                    title: 'User Details Changed.',
+                    text: data.MESSAGE,
+                    type: 'success'
+                  });
+                $(location).attr('href', '/management');
+              } else {
+                new PNotify({
+                    title: 'Oops !!! Something went wrong.',
+                    text: data.ERROR,
+                    type: 'error'
+                  });
+              }
+          }
+        });
+    }
 }
