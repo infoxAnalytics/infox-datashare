@@ -101,7 +101,7 @@ span.tag a {
 }
 
 
-#all_users_paginate > ul, #all_users_filter > label {
+#all_users_paginate > ul, #all_users_filter > label, #pending_accounts_table_paginate > ul, #pending_accounts_table_filter > label {
     float: right !important;
 }
 
