@@ -4,7 +4,7 @@
 
 from db_handler import Db
 from tools import write_log_to_mysql, get_username, response_create, datetime_patern, catch_exception
-from raw_data_handler import get_system_logs_table, get_surveys_table, get_users_table, get_projects_table
+from raw_data_handler import get_system_logs_table, get_surveys_table, get_users_table, get_projects_table, get_country_table
 from flask import abort, session
 
 import json
@@ -43,6 +43,10 @@ class Processor(Db):
         if project_id == "none":
             return "None"
         return get_projects_table(where="ID='" + project_id + "'", column="NAME")[0][0]
+
+    @staticmethod
+    def get_country_id(country_name):
+        return get_country_table(where="NAME='" + country_name + "'", column="CODE")[0][0]
 
     @catch_exception
     def save_survey_results(self, args, person, ip):
@@ -184,21 +188,24 @@ class Processor(Db):
 
     @catch_exception
     def change_user_details(self, args, person, ip):
-        event_type = "USER_STATUS_CHANGE"
+        event_type = "USER_DETAILS_CHANGE"
         f_name, l_name = get_username(person)
         t_name, t_surname = get_username(args["USER_ID"])
         changes = dict()
         columns = ("MAJORITY", "COUNTRY", "HOSPITAL", "CITY", "ROLE", "PROJECT")
+        args["COUNTRY"] = self.get_country_id(args["COUNTRY_NAME"])
+        args["PROJECT"] = ",".join([self.get_project_name(i) for i in args["PROJECT"]])
         update_statement = "UPDATE users SET"
         old_data = get_users_table(where="ID='" + args["USER_ID"] + "'", column=",".join(columns))[0]
         for i in range(len(columns)):
             if args[columns[i]] != old_data[i]:
                 changes[columns[i]] = (old_data[i], args[columns[i]])
-                update_statement += " " + columns[i] + "=" + args[columns[i]]
+                update_statement += " " + columns[i] + "='" + args[columns[i]] + "'"
         if len(changes) > 0:
             update_statement += " WHERE ID='" + args["USER_ID"] + "'"
             self.write_mysql(update_statement)
             log = "User details changed by \"{0} {1}\".Name: {2}, Surname: {3}, Changes: {4}.".format(f_name, l_name, t_name, t_surname, changes)
             write_log_to_mysql(event_type, ip, "INFO", log, self.system_username)
             self.mysql_commit()
-        return response_create(json.dumps({"STATUS": "OK", "MESSAGE": "Status changed."}))
+            return response_create(json.dumps({"STATUS": "OK", "MESSAGE": "Status changed."}))
+        return response_create(json.dumps({"STATUS": "error", "ERROR": "No changes found."}))

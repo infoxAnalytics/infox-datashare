@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-from tools import response_create, get_user_base_folder
+from tools import response_create, get_user_base_folder, image_resize
 from main_handler import Processor
 from raw_data_handler import get_users_table, get_country_table, get_pages_table, get_system_logs_table, get_projects_table, get_user_roles_table
 from flask import url_for, redirect
@@ -53,7 +53,7 @@ def arguman_controller(args, access=False, log_patern=False):
         "PROJECT": [projects, "Invalid project."],
         "USER_STATUS": [re.compile("(enable|delete|disable|activate)"), "Invalid user status."],
         "COUNTRY_NAME": [country_names, "Invalid country name."],
-        "USER_ROLE": [user_role, "Invalid role name."]
+        "ROLE": [user_role, "Invalid role name."]
     }
     for_log_patern = {
         "ALL_LOG": [re.compile("(True|False)"), "Invalid bool value error."],
@@ -150,6 +150,7 @@ def uploaded_file_security(_file, _type, uid):
             if not os.path.exists(os.path.join(user_base, "images")):
                 os.mkdir(os.path.join(user_base, "images"))
                 time.sleep(0.5)
+            image_resize(os.path.join(tmp_base, _file.filename), 192, 192)
             os.system("mv " + os.path.join(tmp_base, _file.filename) + " " + os.path.join(user_base, "images/{0}.{1}".format(uid, _file.filename.split(".")[-1])))
             time.sleep(0.5)
             os.system("rm -rf " + tmp_base)

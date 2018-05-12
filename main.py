@@ -311,8 +311,8 @@ def admin_components():
             "COUNTRY_NAME": mdb.escape_string(request.form["COUNTRY_NAME"]).title(),
             "HOSPITAL": mdb.escape_string(request.form["HOSPITAL"]).title(),
             "CITY": mdb.escape_string(request.form["CITY"]).capitalize(),
-            "USER_ROLE": mdb.escape_string(request.form["ROLE"]).capitalize(),
-            "PROJECT": mdb.escape_string(request.form["PROJECTS"])
+            "ROLE": mdb.escape_string(request.form["ROLE"]).capitalize(),
+            "PROJECT": mdb.escape_string(request.form["PROJECTS"]).split(",")
         }
         control = arguman_controller(args)
         if not control[0]:
