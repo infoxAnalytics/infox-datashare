@@ -179,11 +179,11 @@
                                 </td>
                                 <td>
                                   {% if us[9] == "Enabled" %}
-                                    <button onclick="userStatusChange('{{ us[8] }}', 'disable')" class="btn btn-danger" type="button">Disable</button>
-                                    <button onclick="$(location).attr('href', '/modify-user?name={{ us[8] }}')" class="btn btn-warning" type="button">Edit</button>
+                                    <button style="width: 100%;" onclick="userStatusChange('{{ us[8] }}', 'disable')" class="btn btn-danger" type="button">Disable</button>
+                                    <button style="width: 100%;" onclick="$(location).attr('href', '/modify-user?name={{ us[8] }}')" class="btn btn-warning" type="button">Edit</button>
                                   {% elif us[9] == "Disabled" %}
-                                    <button onclick="userStatusChange('{{ us[8] }}', 'enable')" class="btn btn-info" type="button">Enable</button>
-                                    <button onclick="$(location).attr('href', '/modify-user?name={{ us[8] }}')" class="btn btn-warning" type="button">Edit</button>
+                                    <button style="width: 100%;" onclick="userStatusChange('{{ us[8] }}', 'enable')" class="btn btn-info" type="button">Enable</button>
+                                    <button style="width: 100%;" onclick="$(location).attr('href', '/modify-user?name={{ us[8] }}')" class="btn btn-warning" type="button">Edit</button>
                                   {% else %}
                                     <button onclick="userStatusChange('{{ us[8] }}', 'activate')" class="btn btn-info" type="button" style="width: 100%;">Activate</button>
                                   {% endif %}

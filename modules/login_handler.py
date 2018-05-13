@@ -3,7 +3,7 @@
 
 from db_handler import Db, calculate_hash
 from tools import response_create, write_log_to_mysql, get_username
-from flask import session, url_for, redirect, current_app
+from flask import session, url_for, redirect
 from raw_data_handler import get_users_table
 
 import json
@@ -93,12 +93,10 @@ class Protector(Db):
             return response_create(json.dumps({"STATUS": "error", "ERROR": "Your passwords does not match."}))
         try:
             uid = str(uuid.uuid4()).split("-")[-1]
-            user_base_folder = os.path.join(current_app.config.get("USER_BASE"), uid)
             self.write_mysql("INSERT INTO users(ID,F_NAME,L_NAME,EMAIL,MAJORITY,COUNTRY,PASSWORD,CITY,HOSPITAL,IP) VALUES ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}')".format(
                 uid, args["FIRSTNAME"], args["LASTNAME"], args["EMAIL"], args["MAJORITY"], args["COUNTRY"], calculate_hash(args["PASSWORD"], "sha256"), args["CITY"], args["HOSPITAL"], ip
             ))
-            self.write_mysql("INSERT INTO user_profile(ID,BASE_FOLDER) VALUES ('{0}','{1}')".format(uid, user_base_folder))
-            os.mkdir(user_base_folder)
+            self.write_mysql("INSERT INTO user_profile(ID) VALUES ('{0}')".format(uid))
             log = "New user created.Name: {0}, Surname: {1}, Majority: {2}, Country: {3}, UserID: {4}.".format(args["FIRSTNAME"], args["LASTNAME"], args["MAJORITY"], args["COUNTRY"], uid)
             write_log_to_mysql(event_type, ip, "INFO", log, self.system_username)
             self.mysql_commit()

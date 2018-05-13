@@ -5,9 +5,10 @@
 from db_handler import Db
 from tools import write_log_to_mysql, get_username, response_create, datetime_patern, catch_exception
 from raw_data_handler import get_system_logs_table, get_surveys_table, get_users_table, get_projects_table, get_country_table
-from flask import abort, session
+from flask import abort, session, current_app
 
 import json
+import os
 
 
 class Processor(Db):
@@ -159,6 +160,8 @@ class Processor(Db):
             if args["PROJECT"][0] == "none":
                 return response_create(json.dumps({"STATUS": "error", "ERROR": "Project is not none for this process."}))
             self.write_mysql("UPDATE users SET STATUS='Enabled', PROJECT='{0}' WHERE ID='{1}'".format(",".join([self.get_project_name(i) for i in args["PROJECT"] if i != "none"]), args["USER_ID"]))
+            user_base_folder = os.path.join(current_app.config.get("PROJECT_BASE") + current_app.config.get("USER_BASE"), args["USER_ID"])
+            os.mkdir(user_base_folder)
         elif args["USER_STATUS"] == "delete":
             self.write_mysql("DELETE FROM users WHERE ID='{0}'".format(args["USER_ID"]))
             self.write_mysql("DELETE FROM user_profile WHERE ID='{0}'".format(args["USER_ID"]))
