@@ -15,7 +15,7 @@ from flask import Flask, render_template, session, redirect, url_for, request, a
 from modules.main_handler import Processor
 from modules.security_handler import is_disabled_account, arguman_controller, permitted_pages, permitted_application, uploaded_file_security, permitted_sub_application
 from modules.login_handler import Protector
-from modules.tools import get_event_users, get_country_name, get_profile_pic, get_username
+from modules.tools import get_event_users, get_country_name, get_profile_pic, get_username, is_obj_in
 from datetime import timedelta
 from modules.config import election
 from modules.raw_data_handler import get_users_table, get_projects_table, get_user_roles_table
@@ -193,7 +193,8 @@ def modify_user():
         get_country_name=get_country_name,
         get_profile_pic=get_profile_pic(user_id),
         projects=get_projects_table(where="STATUS='Active'"),
-        roles=get_user_roles_table()
+        roles=get_user_roles_table(),
+        is_obj_in=is_obj_in
     )
 
 
@@ -312,7 +313,7 @@ def admin_components():
             "COUNTRY_NAME": mdb.escape_string(request.form["COUNTRY_NAME"]).title(),
             "HOSPITAL": mdb.escape_string(request.form["HOSPITAL"]).title(),
             "CITY": mdb.escape_string(request.form["CITY"]).capitalize(),
-            "ROLE": mdb.escape_string(request.form["ROLE"]).capitalize(),
+            "ROLE": ",".join([i.capitalize() for i in mdb.escape_string(request.form["ROLE"]).split(",")]),
             "PROJECT": mdb.escape_string(request.form["PROJECTS"]).split(",")
         }
         control = arguman_controller(args)

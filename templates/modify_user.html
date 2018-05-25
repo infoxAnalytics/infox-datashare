@@ -150,7 +150,7 @@
           <div class="input-group input-group-lg" style="margin-top: 5px;">
             <select name="role" id="role" class="selectpicker" multiple data-actions-box="true" data-selected-text-format="count > 2">
               {% for r in roles %}
-                {% if user_data[6] == r[0] %}
+                {% if is_obj_in(r[0], user_data[6], make_list=True) %}
                   <option value="{{ r[0] }}" data-subtext="{{ r[1] }}" selected="selected">{{ r[0] }}</option>
                 {% else %}
                   <option value="{{ r[0] }}" data-subtext="{{ r[1] }}">{{ r[0] }}</option>
@@ -165,7 +165,7 @@
           <div class="input-group input-group-lg" style="margin-top: 5px;">
             <select name="projects" id="projects" class="selectpicker" multiple data-actions-box="true" data-selected-text-format="count > 2">
               {% for p in projects %}
-                {% if user_data[8] == p[1] %}
+                {% if is_obj_in(p[1], user_data[8], make_list=True) %}
                   <option value="{{ p[0] }}" data-subtext="{{ p[2] }}" selected="selected">{{ p[1] }}</option>
                 {% else %}
                   <option value="{{ p[0] }}" data-subtext="{{ p[2] }}">{{ p[1] }}</option>

@@ -67,7 +67,7 @@ def write_log_to_mysql(event_type, event_ip, severity, event_log, username):
             event_type,
             event_ip,
             severity,
-            event_log.replace("'", "\'"),
+            event_log.replace("\'", "\\'"),
             datetime_patern("mysql"),
             username
         )
@@ -103,6 +103,12 @@ def get_profile_pic(uid):
 
 def get_user_base_folder(uid):
     return os.path.join(current_app.config.get("PROJECT_BASE") + current_app.config.get("USER_BASE"), uid)
+
+
+def is_obj_in(obj, target, make_list=False, sep=","):
+    if not make_list:
+        return obj in target
+    return obj in target.split(sep)
 
 
 def image_resize(file_path, w, h):
