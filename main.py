@@ -27,6 +27,8 @@ app.secret_key = "19d40f906d1f67cf66ccce9d2ea575604ad5f6a4497c5b3863c15eb7db5be7
 app.config["DEBUG"] = election[os.getenv("TARGET_PLATFORM")].DEBUG
 app.config["USER_BASE"] = election[os.getenv("TARGET_PLATFORM")].USER_BASE
 app.config["PROJECT_BASE"] = election[os.getenv("TARGET_PLATFORM")].PROJECT_BASE
+app.config["LOGGING_BASE"] = election[os.getenv("TARGET_PLATFORM")].LOGGING_BASE
+app.config["LOG_LEVEL"] = election[os.getenv("TARGET_PLATFORM")].LOG_LEVEL
 
 main_handler = Processor()
 login_handler = Protector()

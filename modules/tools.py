@@ -12,10 +12,39 @@ from PIL import Image
 import datetime
 import random
 import os
-import re
 import json
+import logging
 
 db_object = Db()
+
+
+class FileLogger(object):
+    def __init__(self):
+        from config import election
+        logger = logging.getLogger("InfoxAnalytics")
+        handler = logging.FileHandler(os.path.join(election[os.getenv("TARGET_PLATFORM")].LOGGING_BASE, "application.log"))
+        formatter = logging.Formatter("%(custom_timestamp)s %(event_type)s %(event_ip)s %(levelname)s %(event_user)s [%(message)s]")
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        logger.setLevel(logging.getLevelName(election[os.getenv("TARGET_PLATFORM")].LOG_LEVEL))
+        self.logging_convert_table = {
+            "INFO": logger.info,
+            "ERROR": logger.error,
+            "WARNING": logger.warning,
+            "CRITICAL": logger.critical
+        }
+
+    def write_log(self, event_type, event_ip, severity, event_log, username):
+        logger_extras = {
+            "custom_timestamp": datetime_patern(),
+            "event_type": event_type,
+            "event_ip": event_ip,
+            "event_user": username
+        }
+        self.logging_convert_table[severity](event_log, extra=logger_extras)
+
+
+f_logger = FileLogger()
 
 
 def catch_exception(f):
@@ -62,6 +91,7 @@ def response_create(data, rtype="json"):
 
 
 def write_log_to_mysql(event_type, event_ip, severity, event_log, username):
+    f_logger.write_log(event_type, event_ip, severity, event_log, username)
     try:
         query = "INSERT INTO system_logs VALUES (NULL, '{0}', '{1}', '{2}', '{3}', '{4}', '{5}')".format(
             event_type,
@@ -115,8 +145,8 @@ def image_resize(file_path, w, h):
     image = Image.open(file_path)
     width = image.size[0]
     height = image.size[0]
-    newWidth = int(round((width/width) * w))
-    newHeight = int(round((height/height) * h))
-    newImage = image.resize((newWidth, newHeight), Image.ANTIALIAS)
-    newImage.format = image.format
-    newImage.save(file_path)
+    new_width = int(round((width/width) * w))
+    new_height = int(round((height/height) * h))
+    new_image = image.resize((new_width, new_height), Image.ANTIALIAS)
+    new_image.format = image.format
+    new_image.save(file_path)
