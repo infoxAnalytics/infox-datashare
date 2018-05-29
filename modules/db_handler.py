@@ -32,7 +32,7 @@ class Db(object):
             self.cb = Bucket("couchbase://{0}/{1}".format(cb_config[0], cb_config[1]), username=cb_config[2], password=cb_config[3])
         if mongo_sup:
             mongo_cfg = self.cfg.MONGO_PARAM
-            self.mongodb_client = MongoClient(host=mongo_cfg[0], port=int(mongo_cfg[1]), username=mongo_cfg[2], password=mongo_cfg[3])
+            self.mongodb_client = MongoClient(host=mongo_cfg[0], port=int(mongo_cfg[1]), username=mongo_cfg[2], password=mongo_cfg[3], authSource=mongo_cfg[4], authMechanism=mongo_cfg[5])
 
     def connect_mysql(self):
         mysql_config = self.cfg.MYSQL_PARAM
