@@ -2,14 +2,12 @@
 # -*- coding: utf-8 -*-
 
 from db_handler import Db, calculate_hash
-from tools import response_create, write_log_to_mysql, get_username
+from tools import response_create, write_log_to_mysql, get_username, get_uuid
 from flask import session, url_for, redirect
 from raw_data_handler import get_users_table
 
 import json
 import re
-import uuid
-import os
 import MySQLdb as mdb
 
 
@@ -92,7 +90,7 @@ class Protector(Db):
         if args["PASSWORD"] != args["RE-PASSWORD"]:
             return response_create(json.dumps({"STATUS": "error", "ERROR": "Your passwords does not match."}))
         try:
-            uid = str(uuid.uuid4()).split("-")[-1]
+            uid = get_uuid()
             self.write_mysql("INSERT INTO users(ID,F_NAME,L_NAME,EMAIL,MAJORITY,COUNTRY,PASSWORD,CITY,HOSPITAL,IP) VALUES ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}')".format(
                 uid, args["FIRSTNAME"], args["LASTNAME"], args["EMAIL"], args["MAJORITY"], args["COUNTRY"], calculate_hash(args["PASSWORD"], "sha256"), args["CITY"], args["HOSPITAL"], ip
             ))

@@ -99,7 +99,7 @@ def permitted_pages(user_roles):
     where_clause = "(ROLE LIKE '%All%'"
     for r in user_roles:
         where_clause += " OR ROLE LIKE '%{0}%'".format(r)
-    where_clause += ") AND PAGE_TYPE='Option'"
+    where_clause += ") AND PAGE_TYPE='Option' AND STATUS='Enabled'"
     return get_pages_table(where=where_clause, column="NAME,LOCATION")
 
 
@@ -110,7 +110,7 @@ def permitted_application(user_roles, user_projects):
     where_clause += ") AND PAGE_TYPE='Property' AND (PROJECT LIKE '%All%'"
     for p in user_projects:
         where_clause += " OR PROJECT LIKE '%{0}%'".format(p)
-    where_clause += ")"
+    where_clause += ") AND STATUS='Enabled'"
     return get_pages_table(where=where_clause, column="NAME,LOCATION,IMAGE")
 
 
@@ -121,7 +121,7 @@ def permitted_sub_application(user_roles, property_name, user_projects):
     where_clause += ") AND PAGE_TYPE='SubProperty' AND PARENT_PAGE='{0}' AND (PROJECT LIKE '%All%'".format(property_name)
     for p in user_projects:
         where_clause += " OR PROJECT LIKE '%{0}%'".format(p)
-    where_clause += ")"
+    where_clause += ") AND STATUS='Enabled'"
     return get_pages_table(where=where_clause, column="NAME,LOCATION,IMAGE,RELATIONAL_ID")
 
 
@@ -145,8 +145,8 @@ def uploaded_file_security(_file, _type, uid):
     _file.save(os.path.join(tmp_base, _file.filename))
     _file_mime = magic.from_file(os.path.join(tmp_base, _file.filename), mime=True)
     if _file_mime in types[_type]:
-        user_base = get_user_base_folder(uid)
         if _type == "picture":
+            user_base = get_user_base_folder(uid)
             if not os.path.exists(os.path.join(user_base, "images")):
                 os.mkdir(os.path.join(user_base, "images"))
                 time.sleep(0.5)

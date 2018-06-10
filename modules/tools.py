@@ -14,6 +14,7 @@ import random
 import os
 import json
 import logging
+import uuid
 
 db_object = Db()
 
@@ -61,6 +62,10 @@ def catch_exception(f):
 
 def calculate_banned_time(banned_time):
     return datetime.datetime.now() + datetime.timedelta(minutes=banned_time)
+
+
+def get_uuid():
+    return str(uuid.uuid4()).split("-")[-1]
 
 
 def sorter(data, index, reverse=False):
@@ -150,3 +155,29 @@ def image_resize(file_path, w, h):
     new_image = image.resize((new_width, new_height), Image.ANTIALIAS)
     new_image.format = image.format
     new_image.save(file_path)
+
+
+def update_db_changeset(changeset_config, env):
+    with open(changeset_config, "r") as config:
+        cfg = json.load(config)
+    for c_set in cfg["changeset"]:
+        if "id" not in c_set or "id" in c_set and db_object.count_mysql("SELECT ID FROM changelog WHERE ID='" + c_set["id"] + "'") == 0:
+            if "id" not in c_set and env == "prod":
+                raise ValueError("Database changes should ran development environment firstly !!!")
+            change_id = get_uuid()
+            change_dml = None
+            for ch in c_set["changes"]:
+                if ch["object"] in ["table"]:
+                    if ch["type"] in ["create"]:
+                        change_dml = ch["type"].upper() + " " + ch["object"].upper() + " " + ch["name"] + "({0})".format(", ".join(ch["properties"]))
+                    elif ch["type"] in ["alter"]:
+                        change_dml = ch["type"].upper() + " " + ch["object"].upper() + " " + ch["name"] + " {0}".format("".join(ch["properties"]))
+                elif ch["object"] in ["data"]:
+                    if ch["type"] in ["delete"]:
+                        change_dml = "DELETE FROM " + ch["name"] + " " + "".join(ch["properties"])
+                db_object.write_mysql(change_dml)
+            db_object.write_mysql("INSERT INTO changelog VALUES (\"{0}\",\"{1}\",\"{2}\")".format(change_id, c_set["author"], change_dml))
+            db_object.mysql_commit()
+            c_set["id"] = change_id
+            with open(changeset_config, "w") as config:
+                json.dump(cfg, config, indent=4)

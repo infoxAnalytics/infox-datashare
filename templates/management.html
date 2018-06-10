@@ -12,13 +12,13 @@
     <title>{{ page_title }} / Management</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="/static/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="/static/pnotify.custom.min.css" rel="stylesheet">
     <link href="/static/custom.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
-    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/static/main_css/bootstrap-select.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/main_css/bootstrap.min.css"/>
 
     <link href="/static/pnotify.custom.min.css" rel="stylesheet">
+    <link href="/static/main_css/surveyeditor.css" type="text/css" rel="stylesheet"/>
 
 
 
@@ -86,6 +86,7 @@
                 <li role="presentation"><a href="#surveys" aria-controls="surveys" role="tab" data-toggle="tab">Surveys</a></li>
                 <li role="presentation"><a href="#analytics" aria-controls="analytics" role="tab" data-toggle="tab">Analytics</a></li>
                 <li role="presentation"><a href="#projects" aria-controls="projects" role="tab" data-toggle="tab">Projects</a></li>
+                <li role="presentation"><a href="#pages" aria-controls="pages" role="tab" data-toggle="tab">Pages</a></li>
               </ul>
 
               <!-- Tab panes -->
@@ -195,8 +196,65 @@
                       </div>
                     </div>
                 </div>
-                <div role="tabpanel" class="tab-pane" id="surveys">...</div>
+                <div role="tabpanel" class="tab-pane" id="surveys">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <h3 style="color: #0a928f">New Surveys</h3>
+                      <div class="row">
+                        <div class="col-md-4">
+                          <label>Survey Name</label>
+                          <div class="input-group input-group-lg" style="margin-top: 5px; width: 100%;">
+                            <input name="survey_name" type="text" class="form-control" placeholder="Survey Name">
+                          </div>
+                        </div>
+                        <div class="col-md-4">
+                          <label>Survey Project</label>
+                          <div class="input-group input-group-lg" style="margin-top: 5px;">
+                            <select class="selectpicker" multiple id="survey_project">
+                              {% for pr in projects %}
+                              <option value="{{ pr[0] }}" data-subtext="{{ pr[2] }}">{{ pr[1] }}</option>
+                              {% endfor %}
+                            </select>
+                          </div>
+                        </div>
+                        <div class="col-md-4">
+                          <label>Survey Image</label>
+                          <div class="input-group input-group-lg" style="margin-top: 5px; width: 100%;">
+                                <label id="pic_browse" class="btn btn-lg btn-default btn-file" style="width: 100%;">
+                                    Browse <input onchange="get_file_name(this.value.replace(/\\/g, '/').replace(/.*\//, ''))" id="survey_pic" type="file" style="display: none;">
+                                </label>
+                          </div>
+                        </div>
+                      </div>
+                      <br/>
+                      <div class="row">
+                        <div class="col-md-12">
+                          <label>Survey Explanation</label>
+                          <div class="input-group input-group-lg" style="margin-top: 5px;">
+                            <textarea name="survey_exp" class="form-control" placeholder="Survey Explanation" style="width: 500px; height: 200px;"></textarea>
+                          </div>
+                        </div>
+                      </div>
+                      <br/>
+                      <div class="row">
+                        <div class="col-md-12">
+                          <label>Survey Body</label>
+                          <div id="surveyEditorContainer"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row" style="margin-top: 3%; margin-bottom: 5%;">
+                    <div class="col-md-12">
+                      <div class="text-center">
+                          <button class="btn btn-lg btn-default">Save Survey</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div role="tabpanel" class="tab-pane" id="analytics">...</div>
+                <div role="tabpanel" class="tab-pane" id="projects">...</div>
+                <div role="tabpanel" class="tab-pane" id="pages">...</div>
               </div>
             </div>
         </div>
@@ -207,15 +265,18 @@
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="/static/main_js/jquery.min.js"></script>
     <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
     <script src="/static/dist/js/bootstrap.min.js"></script>
     <script src="/static/pnotify.custom.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/js/bootstrap-select.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap.min.js"></script>
+    <script src="/static/main_js/bootstrap-select.min.js"></script>
+    <script type="text/javascript" src="/static/main_js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="/static/main_js/dataTables.bootstrap.min.js"></script>
     <script src="/static/main_js/uam.js"></script>
     <script src="/static/pnotify.custom.min.js"></script>
+    <script src="/static/main_js/knockout-min.js"></script>
+    <script src="/static/main_js/survey.ko.min.js"></script>
+    <script src="/static/main_js/surveyeditor.min.js"></script>
     <script>
 
         $(document).ready(function() {
@@ -223,6 +284,14 @@
               "aaSorting": []
             });
         });
+
+        var editorOptions = {"showJSONEditorTab": false, "isAutoSave": false, "showPropertyGrid": false}
+        var survey = new SurveyEditor.SurveyEditor("surveyEditorContainer", editorOptions);
+        $("div.svd_commercial_container").css("display", "none");
+
+        function get_file_name(x) {
+            $("#pic_browse").html(x);
+        }
 
         $(document).on({
             ajaxStart: function() { $('#loading').css("display","block"); },

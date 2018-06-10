@@ -10,7 +10,7 @@ class ProductionConfig(Config):
     MONGO_PARAM = ["localhost", "27017", "superAdmin", "123456", "admin", "SCRAM-SHA-1"]
     COUCHBASE_PARAM = ["localhost", "general", "Administrator", "123456"]
     SESSION_PARAM = ["localhost", "session", "Administrator", "123456"]
-    PROJECT_BASE = "/usr/local/nginx/html/infox-datashare"
+    PROJECT_BASE = "/usr/share/nginx/html/infox-datashare"
 
 
 class DevelopmentConfig(Config):
@@ -20,6 +20,7 @@ class DevelopmentConfig(Config):
     COUCHBASE_PARAM = ["localhost", "general", "Administrator", "123456"]
     SESSION_PARAM = ["localhost", "session", "Administrator", "123456"]
     PROJECT_BASE = "/home/ghost/Desktop/Workshop/AnalyticsProject/infox-datashare"
+    CHANGESET_FILE = "/modules/dbchangelog/changelog_ver-1_0.json"
 
 
 election = {

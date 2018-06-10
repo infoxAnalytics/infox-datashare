@@ -15,7 +15,7 @@ from flask import Flask, render_template, session, redirect, url_for, request, a
 from modules.main_handler import Processor
 from modules.security_handler import is_disabled_account, arguman_controller, permitted_pages, permitted_application, uploaded_file_security, permitted_sub_application
 from modules.login_handler import Protector
-from modules.tools import get_event_users, get_country_name, get_profile_pic, get_username, is_obj_in
+from modules.tools import get_event_users, get_country_name, get_profile_pic, get_username, is_obj_in, update_db_changeset
 from datetime import timedelta
 from modules.config import election
 from modules.raw_data_handler import get_users_table, get_projects_table, get_user_roles_table
@@ -325,4 +325,5 @@ def admin_components():
 
 
 if __name__ == '__main__':
+    update_db_changeset(election[os.getenv("TARGET_PLATFORM")].PROJECT_BASE + election[os.getenv("TARGET_PLATFORM")].CHANGESET_FILE, os.getenv("TARGET_PLATFORM"))
     app.run(port=5000)
