@@ -1,0 +1,32 @@
+{
+    "changeset": [
+        {
+            "changes": [
+                {
+                    "object": "data", 
+                    "type": "delete", 
+                    "name": "pages", 
+                    "properties": [
+                        "WHERE NAME='Montly Epidemic Diagnosis'"
+                    ]
+                }
+            ], 
+            "id": "588459d3bc69", 
+            "author": "yigitcan.basalma"
+        }, 
+        {
+            "changes": [
+                {
+                    "object": "table", 
+                    "type": "alter", 
+                    "name": "pages", 
+                    "properties": [
+                        "ADD COLUMN STATUS VARCHAR(15) DEFAULT 'Enabled'"
+                    ]
+                }
+            ], 
+            "id": "d6bf50101b71", 
+            "author": "yigitcan.basalma"
+        }
+    ]
+}
