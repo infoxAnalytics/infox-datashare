@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 
-from tools import response_create, get_user_base_folder, image_resize
-from main_handler import Processor
+from tools import response_create, get_user_base_folder, image_resize, get_survey_image_base_folder
 from raw_data_handler import get_users_table, get_country_table, get_pages_table, get_system_logs_table, get_projects_table, get_user_roles_table
 from flask import url_for, redirect
+from db_handler import Db
 
 import json
 import re
@@ -14,7 +14,7 @@ import os
 import magic
 import time
 
-main_handler = Processor()
+db_object = Db()
 
 
 def is_disabled_account(uid):
@@ -23,7 +23,7 @@ def is_disabled_account(uid):
     return False
 
 
-def arguman_controller(args, access=False, log_patern=False):
+def arguman_controller(args, log_patern=False):
     mail = re.compile("^[a-zA-Z0-9.\-_]+@[a-zA-Z0-9]{,8}\.([a-zA-Z0-9]{,8}\.[a-zA-Z0-9]{,8}|[a-zA-Z0-9]{,8})$")
     names = re.compile(r"^[a-zA-Z ]{,20}$", re.UNICODE)
     hospital = re.compile(r"^[a-zA-Z ]{,50}$", re.UNICODE)
@@ -38,7 +38,7 @@ def arguman_controller(args, access=False, log_patern=False):
     country_names = re.compile("^{0}$".format("|".join([i[0] for i in get_country_table(column="NAME")])))
     user_id = re.compile("^{0}$".format("|".join([i[0] for i in get_users_table(column="ID")])))
     user_role = re.compile("^{0}$".format("|".join([i[0] for i in get_user_roles_table(column="NAME")])))
-    projects = re.compile("^none|{0}$".format("|".join([i[0] for i in get_projects_table(column="ID")])))
+    projects = re.compile("^All|none|{0}$".format("|".join([i[0] for i in get_projects_table(column="ID")])))
     patern = {
         "EMAIL": [mail, "Mail address syntax error."],
         "FIRSTNAME": [names, "Firstname syntax error."],
@@ -53,7 +53,10 @@ def arguman_controller(args, access=False, log_patern=False):
         "PROJECT": [projects, "Invalid project."],
         "USER_STATUS": [re.compile("(enable|delete|disable|activate)"), "Invalid user status."],
         "COUNTRY_NAME": [country_names, "Invalid country name."],
-        "ROLE": [user_role, "Invalid role name."]
+        "ROLE": [user_role, "Invalid role name."],
+        "SURVEY_NAME": [names, "Invalid survey name."],
+        "SURVEY_EXP": [keyword, "Invalid survey explanation."],
+        "SURVEY_PIC_FILE": []
     }
     for_log_patern = {
         "ALL_LOG": [re.compile("(True|False)"), "Invalid bool value error."],
@@ -84,12 +87,9 @@ def arguman_controller(args, access=False, log_patern=False):
                     for key in v:
                         if not bool(patern[k][0].search(key)):
                             return False, json.dumps({"STATUS": "error", "ERROR": patern[k][1]})
-                elif v not in ["none", "None", "NONE", "all", "All", "ALL"]:
+                elif k not in ["SURVEY_TEXT", "SURVEY_PIC_FILE"]:
                     if not bool(patern[k][0].search(v)):
                         return False, json.dumps({"STATUS": "error", "ERROR": patern[k][1]})
-                elif v in ["all", "All", "ALL"]:
-                    if not access:
-                        return False, json.dumps({"STATUS": "error", "ERROR": "Do not use 'All' keyword in this area."})
         return True, 0
     except Exception as e:
         return False, response_create(json.dumps({"STATUS": "error", "ERROR": "Something went wrong.Exception is : " + str(e)}))
@@ -138,6 +138,18 @@ def uploaded_file_security(_file, _type, uid):
             "image/x-ms-bmp",
             "image/svg+xml",
             "image/webp"
+        ],
+        "survey_pic": [
+            "image/jpeg",
+            "image/png",
+            "image/png",
+            "image/tiff",
+            "image/vnd.wap.wbmp",
+            "image/x-icon",
+            "image/x-jng",
+            "image/x-ms-bmp",
+            "image/svg+xml",
+            "image/webp"
         ]
     }
     tmp_base = os.path.join("/tmp", str(uuid.uuid4()).split("-")[-1])
@@ -154,6 +166,13 @@ def uploaded_file_security(_file, _type, uid):
             os.system("mv " + os.path.join(tmp_base, _file.filename) + " " + os.path.join(user_base, "images/{0}.{1}".format(uid, _file.filename.split(".")[-1])))
             time.sleep(0.5)
             os.system("rm -rf " + tmp_base)
-            main_handler.write_mysql("UPDATE user_profile SET IMAGE='{0}.{1}' WHERE ID='{0}'".format(uid, _file.filename.split(".")[-1]))
+            db_object.write_mysql("UPDATE user_profile SET IMAGE='{0}.{1}' WHERE ID='{0}'".format(uid, _file.filename.split(".")[-1]))
             return redirect(url_for("profile"))
-    return False, json.dumps({"STATUS": "error", "ERROR": "Your image type is incompatible."})
+        elif _type == "survey_pic":
+            survey_base = get_survey_image_base_folder()
+            image_resize(os.path.join(tmp_base, _file.filename), 192, 192)
+            os.system("mv " + os.path.join(tmp_base, _file.filename) + " " + os.path.join(survey_base, "{0}.{1}".format(uid, _file.filename.split(".")[-1])))
+            time.sleep(0.5)
+            os.system("rm -rf " + tmp_base)
+            return os.path.join(survey_base, "{0}.{1}".format(uid, _file.filename.split(".")[-1]))
+    return json.dumps({"STATUS": "error", "ERROR": "Your image type is incompatible."})

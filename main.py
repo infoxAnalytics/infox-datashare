@@ -28,6 +28,7 @@ app.config["DEBUG"] = election[os.getenv("TARGET_PLATFORM")].DEBUG
 app.config["USER_BASE"] = election[os.getenv("TARGET_PLATFORM")].USER_BASE
 app.config["PROJECT_BASE"] = election[os.getenv("TARGET_PLATFORM")].PROJECT_BASE
 app.config["LOGGING_BASE"] = election[os.getenv("TARGET_PLATFORM")].LOGGING_BASE
+app.config["SURVEY_IMAGE_BASE"] = election[os.getenv("TARGET_PLATFORM")].SURVEY_IMAGE_BASE
 app.config["LOG_LEVEL"] = election[os.getenv("TARGET_PLATFORM")].LOG_LEVEL
 
 main_handler = Processor()
@@ -322,6 +323,18 @@ def admin_components():
         if not control[0]:
             return control[1]
         return main_handler.change_user_details(args=args, person=person, ip=ip)
+    elif process == "SaveNewSurvey":
+        args = {
+            "SURVEY_NAME": mdb.escape_string(request.form["SURVEY_NAME"]).title(),
+            "SURVEY_TEXT": mdb.escape_string(request.form["SURVEY_TEXT"]),
+            "SURVEY_EXP": mdb.escape_string(request.form["SURVEY_EXP"]),
+            "SURVEY_PIC_FILE": request.files["SURVEY_PIC"],
+            "PROJECT": mdb.escape_string(request.form["SURVEY_PROJECT"]).split(",")
+        }
+        control = arguman_controller(args)
+        if not control[0]:
+            return control[1]
+        return main_handler.create_new_survey(args=args, person=person, ip=ip)
 
 
 if __name__ == '__main__':

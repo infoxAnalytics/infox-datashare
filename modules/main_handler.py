@@ -3,9 +3,10 @@
 
 
 from db_handler import Db
-from tools import write_log_to_mysql, get_username, response_create, datetime_patern, catch_exception
+from tools import write_log_to_mysql, get_username, response_create, datetime_patern, catch_exception, get_uuid
 from raw_data_handler import get_system_logs_table, get_surveys_table, get_users_table, get_projects_table, get_country_table
 from flask import abort, session, current_app
+from security_handler import uploaded_file_security
 
 import json
 import os
@@ -43,6 +44,8 @@ class Processor(Db):
     def get_project_name(project_id):
         if project_id == "none":
             return "None"
+        elif project_id == "All":
+            return "All"
         return get_projects_table(where="ID='" + project_id + "'", column="NAME")[0][0]
 
     @staticmethod
@@ -212,3 +215,30 @@ class Processor(Db):
             self.mysql_commit()
             return response_create(json.dumps({"STATUS": "OK", "MESSAGE": "Status changed."}))
         return response_create(json.dumps({"STATUS": "error", "ERROR": "No changes found."}))
+
+    @catch_exception
+    def create_new_survey(self, args, person, ip):
+        event_type = "CREATE_NEW_SURVEY"
+        f_name, l_name = get_username(person)
+        survey_id = get_uuid()
+        img_filename = uploaded_file_security(args["SURVEY_PIC_FILE"], "survey_pic", survey_id)
+        page_type = "SubProperty"
+        location = "/do-survey"
+        role = "All"
+        parent_page = "Survey"
+        if not isinstance(img_filename, str):
+            return img_filename
+        if get_surveys_table(where="NAME='" + args["SURVEY_NAME"] + "'", count=True) > 0:
+            return response_create(json.dumps({"STATUS": "error", "ERROR": "Survey name is already exists."}))
+        if "All" in args["PROJECT"]:
+            args["PROJECT"] = ["All"]
+        self.write_mysql("INSERT INTO surveys VALUES ('{0}','{1}','{2}','{3}','{4}')".format(
+            survey_id, args["SURVEY_NAME"], args["SURVEY_TEXT"], args["SURVEY_EXP"], ",".join([self.get_project_name(i) for i in args["PROJECT"]])
+        ))
+        self.write_mysql("INSERT INTO pages VALUES ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','Enabled')".format(
+            args["SURVEY_NAME"], location, role, img_filename, page_type, parent_page, survey_id, ",".join([self.get_project_name(i) for i in args["PROJECT"]])
+        ))
+        log = "New survey added by \"{0} {1}\".Name: {2}, ID: {3}.".format(f_name, l_name, args["SURVEY_NAME"], survey_id)
+        write_log_to_mysql(event_type, ip, "INFO", log, self.system_username)
+        self.mysql_commit()
+        return response_create(json.dumps({"STATUS": "OK", "MESSAGE": "New survey added."}))

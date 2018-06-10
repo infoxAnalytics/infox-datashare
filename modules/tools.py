@@ -140,6 +140,10 @@ def get_user_base_folder(uid):
     return os.path.join(current_app.config.get("PROJECT_BASE") + current_app.config.get("USER_BASE"), uid)
 
 
+def get_survey_image_base_folder():
+    return current_app.config.get("SURVEY_IMAGE_BASE")
+
+
 def is_obj_in(obj, target, make_list=False, sep=","):
     if not make_list:
         return obj in target
