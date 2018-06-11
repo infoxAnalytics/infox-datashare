@@ -168,7 +168,11 @@ def update_db_changeset(changeset_config, env):
         if "id" not in c_set or "id" in c_set and db_object.count_mysql("SELECT ID FROM changelog WHERE ID='" + c_set["id"] + "'") == 0:
             if "id" not in c_set and env == "prod":
                 raise ValueError("Database changes should ran development environment firstly !!!")
-            change_id = get_uuid()
+            if "id" in c_set:
+                change_id = c_set["id"]
+            else:
+                change_id = get_uuid()
+                c_set["id"] = change_id
             change_dml = None
             for ch in c_set["changes"]:
                 if ch["object"] in ["table"]:
@@ -182,6 +186,5 @@ def update_db_changeset(changeset_config, env):
                 db_object.write_mysql(change_dml)
             db_object.write_mysql("INSERT INTO changelog VALUES (\"{0}\",\"{1}\",\"{2}\")".format(change_id, c_set["author"], change_dml))
             db_object.mysql_commit()
-            c_set["id"] = change_id
             with open(changeset_config, "w") as config:
                 json.dump(cfg, config, indent=4)
