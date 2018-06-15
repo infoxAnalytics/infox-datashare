@@ -37,8 +37,8 @@ class Processor(Db):
         return get_users_table(where="STATUS!='Pending' ORDER BY STATUS DESC", column="F_NAME,L_NAME,EMAIL,MAJORITY,COUNTRY,CITY,HOSPITAL,ROLE,ID,STATUS,PROJECT")
 
     @staticmethod
-    def get_projects():
-        return get_projects_table(where="STATUS='Active'", column="ID,NAME,EXPLANATION")
+    def get_all_projects():
+        return get_projects_table(column="ID,NAME,EXPLANATION,STATUS")
 
     @staticmethod
     def get_project_name(project_id):
@@ -242,3 +242,28 @@ class Processor(Db):
         write_log_to_mysql(event_type, ip, "INFO", log, self.system_username)
         self.mysql_commit()
         return response_create(json.dumps({"STATUS": "OK", "MESSAGE": "New survey added."}))
+
+    @catch_exception
+    def change_project_status(self, args, person, ip):
+        convert_table = {"Active": "Passive", "Passive": "Active"}
+        event_type = "PROJECT_STATUS_CHANGE"
+        f_name, l_name = get_username(person)
+        if get_projects_table(where="ID='" + args["PROJECT_ID"] + "' AND STATUS='" + convert_table[args["PROJECT_STATUS"]] + "'", count=True) > 0:
+            self.write_mysql("UPDATE projects SET STATUS='{1}' WHERE ID='{0}'".format(args["PROJECT_ID"], args["PROJECT_STATUS"]))
+            log = "Project status changed by \"{0} {1}\".Status: {2}, Project Name: {3}.".format(f_name, l_name, args["PROJECT_STATUS"], self.get_project_name(args["PROJECT_ID"]))
+            write_log_to_mysql(event_type, ip, "INFO", log, self.system_username)
+            self.mysql_commit()
+        return response_create(json.dumps({"STATUS": "OK", "MESSAGE": "Status changed."}))
+
+    @catch_exception
+    def add_new_project(self, args, person, ip):
+        event_type = "ADD_NEW_PROJECT"
+        f_name, l_name = get_username(person)
+        if get_projects_table(where="NAME='" + args["PROJECT_IDENTIFIER"] + "'", count=True) > 0:
+            return response_create(json.dumps({"STATUS": "error", "ERROR": "Project already exists."}))
+        project_id = get_uuid()
+        self.write_mysql("INSERT INTO projects VALUES ('{0}','{1}','{2}','Passive')".format(project_id, args["PROJECT_IDENTIFIER"], args["PROJECT_EXP"]))
+        log = "New project added by \"{0} {1}\".Project ID: {2}, Project Name: {3}.".format(f_name, l_name, project_id, args["PROJECT_IDENTIFIER"])
+        write_log_to_mysql(event_type, ip, "INFO", log, self.system_username)
+        self.mysql_commit()
+        return response_create(json.dumps({"STATUS": "OK", "MESSAGE": "New project added."}))

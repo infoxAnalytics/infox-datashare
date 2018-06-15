@@ -19,6 +19,7 @@
 
     <link href="/static/pnotify.custom.min.css" rel="stylesheet">
     <link href="/static/main_css/surveyeditor.css" type="text/css" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
 
 
 
@@ -32,6 +33,40 @@
   <body>
 
     <img id="loading" src="/static/images/loading.gif" style="position:absolute;z-index:9999;width:100%;display:none;opacity:0.5">
+
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel">Add New Project</h4>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-md-3">
+                <label>Project Identifier</label>
+                <div class="input-group input-group-lg">
+                  <span class="input-group-addon"><i class="fa fa-project-diagram"></i></span>
+                  <input name="project_identifier" type="text" class="form-control" placeholder="Project Identifier">
+                </div>
+              </div>
+              <div class="col-md-9">
+                <label>Project Explanation</label>
+                <div class="input-group input-group-lg">
+                  <span class="input-group-addon"><i class="fa fa-comments"></i></span>
+                  <input name="project_exp" type="text" class="form-control" placeholder="Project Explanation">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+            <button onclick="create_new_project()" type="button" class="btn btn-default">Save New Project</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
 
     <!-- Fixed navbar -->
@@ -125,7 +160,9 @@
                                 <td>
                                   <select class="selectpicker" data-width="fit" multiple id="{{ us[8] }}_project">
                                     {% for pr in projects %}
-                                      <option value="{{ pr[0] }}" data-subtext="{{ pr[2] }}">{{ pr[1] }}</option>
+                                      {% if pr[3] == "Active" %}
+                                        <option value="{{ pr[0] }}" data-subtext="{{ pr[2] }}">{{ pr[1] }}</option>
+                                      {% endif %}
                                     {% endfor %}
                                   </select>
                                 </td>
@@ -213,7 +250,9 @@
                             <select class="selectpicker" multiple id="survey_project">
                               <option value="All">All</option>
                               {% for pr in projects %}
-                              <option value="{{ pr[0] }}" data-subtext="{{ pr[2] }}">{{ pr[1] }}</option>
+                                {% if pr[3] == "Active" %}
+                                  <option value="{{ pr[0] }}" data-subtext="{{ pr[2] }}">{{ pr[1] }}</option>
+                                {% endif %}
                               {% endfor %}
                             </select>
                           </div>
@@ -254,7 +293,40 @@
                   </div>
                 </div>
                 <div role="tabpanel" class="tab-pane" id="analytics">...</div>
-                <div role="tabpanel" class="tab-pane" id="projects">...</div>
+                <div role="tabpanel" class="tab-pane" id="projects">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <h3 style="color: #0a928f">Projects</h3><h4><button class="btn btn-default" data-toggle="modal" data-target="#myModal">New Project</button></h4>
+                    </div>
+                  </div>
+                  <br/>
+                  <div class="row">
+                    <div class="col-md-12">
+                      <table class="table table-striped table-bordered" style="width: 100%;" id="all_projects">
+                        <thead>
+                          <tr>
+                            <th>Project Name</th>
+                            <th>Detail</th>
+                            <th>Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {% for pr in projects %}
+                            <tr>
+                              <td>{{ pr[1] }}</td>
+                              <td>{{ pr[2] }}</td>
+                              {% if pr[3] == "Active" %}
+                                <td><button onclick="projectStatusChange('{{ pr[0] }}', 'Passive')" style="width: 100%" class="btn btn-info">{{ pr[3] }}</button></td>
+                              {% else %}
+                                <td><button onclick="projectStatusChange('{{ pr[0] }}', 'Active')" style="width: 100%" class="btn btn-danger">{{ pr[3] }}</button></td>
+                              {% endif %}
+                            </tr>
+                          {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
                 <div role="tabpanel" class="tab-pane" id="pages">...</div>
               </div>
             </div>
@@ -280,10 +352,8 @@
     <script src="/static/main_js/surveyeditor.min.js"></script>
     <script>
 
-        $(document).ready(function() {
-            $('.table').DataTable({
-              "aaSorting": []
-            });
+        $('.table').DataTable({
+          "aaSorting": []
         });
 
         var editorOptions = {"showJSONEditorTab": false, "isAutoSave": false, "showPropertyGrid": false}

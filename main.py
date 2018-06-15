@@ -226,7 +226,7 @@ def management():
         pending_count=main_handler.get_pending_account_count(),
         pending_list=main_handler.get_pending_account_list(),
         get_country_name=get_country_name,
-        projects=main_handler.get_projects(),
+        projects=main_handler.get_all_projects(),
         all_users=main_handler.get_all_account()
     )
 
@@ -335,6 +335,24 @@ def admin_components():
         if not control[0]:
             return control[1]
         return main_handler.create_new_survey(args=args, person=person, ip=ip)
+    elif process == "ChangeProjectStatus":
+        args = {
+            "PROJECT_ID": mdb.escape_string(request.form["PROJECT_ID"]),
+            "PROJECT_STATUS": mdb.escape_string(request.form["PROJECT_STATUS"])
+        }
+        control = arguman_controller(args)
+        if not control[0]:
+            return control[1]
+        return main_handler.change_project_status(args=args, person=person, ip=ip)
+    elif process == "CreateNewProject":
+        args = {
+            "PROJECT_IDENTIFIER": mdb.escape_string(request.form["PROJECT_IDENTIFIER"]),
+            "PROJECT_EXP": mdb.escape_string(request.form["PROJECT_EXP"])
+        }
+        control = arguman_controller(args)
+        if not control[0]:
+            return control[1]
+        return main_handler.add_new_project(args=args, person=person, ip=ip)
 
 
 if __name__ == '__main__':

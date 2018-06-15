@@ -26,6 +26,7 @@ def is_disabled_account(uid):
 def arguman_controller(args, log_patern=False):
     mail = re.compile("^[a-zA-Z0-9.\-_]+@[a-zA-Z0-9]{,8}\.([a-zA-Z0-9]{,8}\.[a-zA-Z0-9]{,8}|[a-zA-Z0-9]{,8})$")
     names = re.compile(r"^[a-zA-Z ]{,20}$", re.UNICODE)
+    identifier = re.compile(r"^[a-zA-Z0-9 \-]{1,50}$", re.UNICODE)
     hospital = re.compile(r"^[a-zA-Z ]{,50}$", re.UNICODE)
     password = re.compile("^(?=.*?\d)(?=.*?[A-Z])(?=.*?[@.*\-_!])(?=.*?[a-z])[A-Za-z\d@.*\-_!]{8,}$")
     ip = re.compile("^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|[\d.*]{,12})$")
@@ -50,12 +51,16 @@ def arguman_controller(args, log_patern=False):
         "CITY": [names, "Invalid city name."],
         "HOSPITAL": [hospital, "Invalid hospital name."],
         "USER_ID": [user_id, "Invalid user id."],
+        "PROJECT_ID": [projects, "Invalid project ID."],
         "PROJECT": [projects, "Invalid project."],
+        "PROJECT_IDENTIFIER": [identifier, "Invalid project."],
         "USER_STATUS": [re.compile("(enable|delete|disable|activate)"), "Invalid user status."],
+        "PROJECT_STATUS": [re.compile("(Active|Passive)"), "Invalid project status."],
         "COUNTRY_NAME": [country_names, "Invalid country name."],
         "ROLE": [user_role, "Invalid role name."],
         "SURVEY_NAME": [names, "Invalid survey name."],
         "SURVEY_EXP": [keyword, "Invalid survey explanation."],
+        "PROJECT_EXP": [keyword, "Invalid project explanation."],
         "SURVEY_PIC_FILE": []
     }
     for_log_patern = {

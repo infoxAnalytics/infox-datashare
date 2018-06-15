@@ -201,3 +201,59 @@ function save_changes_user_details(x) {
         });
     }
 }
+
+function projectStatusChange(x,y) {
+    if (confirm("Project status will change.Are you sure?")) {
+        var data = {"PROCESS":"ChangeProjectStatus", "PROJECT_ID":x, "PROJECT_STATUS":y}
+        $.ajax({
+          type: "POST",
+          url: "/admin-components",
+          data: data,
+          dataType: "json",
+          success: function(data) {
+            if ( data.STATUS == "OK" ) {
+                new PNotify({
+                    title: 'Project Status Changed.',
+                    text: data.MESSAGE,
+                    type: 'success'
+                  });
+                $(location).attr('href', '/management');
+              } else {
+                new PNotify({
+                    title: 'Oops !!! Something went wrong.',
+                    text: data.ERROR,
+                    type: 'error'
+                  });
+              }
+          }
+        });
+    }
+}
+
+function create_new_project() {
+    var project_identifier = document.querySelector('[name="project_identifier"]').value;
+    var project_exp = document.querySelector('[name="project_exp"]').value;
+    var data = {"PROCESS": "CreateNewProject", "PROJECT_IDENTIFIER": project_identifier, "PROJECT_EXP": project_exp};
+    $.ajax({
+      type: "POST",
+      url: "/admin-components",
+      data: data,
+      dataType: "json",
+      success: function(data) {
+        if ( data.STATUS == "OK" ) {
+            new PNotify({
+                title: 'Added New Project.',
+                text: data.MESSAGE,
+                type: 'success'
+              });
+            $(location).attr('href', '/management');
+          } else {
+            new PNotify({
+                title: 'Oops !!! Something went wrong.',
+                text: data.ERROR,
+                type: 'error'
+              });
+          }
+      }
+    });
+}
