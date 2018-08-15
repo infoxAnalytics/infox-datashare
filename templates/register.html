@@ -52,22 +52,22 @@
 
         <div class="input-group input-group-lg" style="margin-top: 5px;">
           <span class="input-group-addon"><i class="fa fa-user-md"></i></span>
-          <input name="majority" type="text" class="form-control" placeholder="Majority">
+          <input name="majority" type="hidden" class="form-control" placeholder="Majority">
         </div>
 
         <div class="input-group input-group-lg" style="margin-top: 5px;">
           <span class="input-group-addon"><i class="fa fa-flag"></i></span>
-          <input name="country_code" type="text" class="form-control" placeholder="Country">
+          <input name="country_code" type="text" onkeyup=" var start = this.selectionStart; var end = this.selectionEnd; this.value = this.value.toUpperCase(); this.setSelectionRange(start, end); " class="form-control" placeholder="Country">
         </div>
 
         <div class="input-group input-group-lg" style="margin-top: 5px;">
           <span class="input-group-addon"><i class="fa fa-map-marker"></i></span>
-          <input name="city" type="text" class="form-control" placeholder="City">
+          <input name="city" type="hidden" class="form-control" placeholder="City">
         </div>
 
         <div class="input-group input-group-lg" style="margin-top: 5px;">
           <span class="input-group-addon"><i class="fa fa-hospital-o"></i></span>
-          <input name="hospital" type="text" class="form-control" placeholder="Hospital">
+          <input name="hospital" type="hidden" class="form-control" placeholder="Hospital">
         </div>
 
       <small style="color: black;" id="countrycodeHelp" class="form-text text-muted">If you don't know your country code, please click <a target="_blank" href="http://www.nationsonline.org/oneworld/country_code_list.htm">this</a> to know(2 digit).</small>
@@ -94,6 +94,10 @@ function register() {
     var countrycode = document.querySelector('[name="country_code"]').value;
     var city = document.querySelector('[name="city"]').value;
     var hospital = document.querySelector('[name="hospital"]').value;
+    
+    if (countrycode.length != 2){
+      alert("You have to enter 2 digit word with capital letters into Country Code (e.g. TR, FR, US...) !!");
+    }
 
     var data = { "PROCESS":"Register", "FIRSTNAME":name, "LASTNAME":surname, "EMAIL":email, "PASSWORD":password, "RE-PASSWORD":repassword, "MAJORITY":majority, "COUNTRY":countrycode, "CITY":city, "HOSPITAL":hospital };
     $.ajax({
