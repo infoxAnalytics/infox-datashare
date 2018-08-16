@@ -141,10 +141,12 @@ function register() {
     
     if (countrycode.length != 2){
       alert("You have to enter 2 digit word with capital letters into Country Code (e.g. TR, FR, US...) !!");
+      return false;
     }
     
     if (password != repassword){
       alert("Your re-password did not match with your password. Please enter re-password again !!");
+      return false;
     }
 
     var data = { "PROCESS":"Register", "FIRSTNAME":name, "LASTNAME":surname, "EMAIL":email, "PASSWORD":password, "RE-PASSWORD":repassword, "MAJORITY":majority, "COUNTRY":countrycode, "CITY":city, "HOSPITAL":hospital };
